@@ -1,119 +1,58 @@
-# 📝 Welcome to **mifarepy** Documentation 🎉
+# mifarepy
 
-Welcome to the official documentation for **mifarepy**, the lightweight and user-friendly Python library for interacting with MIFARE® RFID card readers over serial using the GNetPlus® protocol.
-
----
-
-## 📖 Table of Contents
-
-1. [Introduction](#introduction)  
-2. [Features](#features)  
-3. [Getting Started](#getting-started)  
-   - [Installation](#installation)  
-   - [Quickstart](#quickstart)  
-4. [Core Concepts](#core-concepts)  
-   - [Protocol Layer](#protocol-layer)  
-   - [Reader API](#reader-api)  
-5. [Detailed Guides](#detailed-guides)  
-   - [API Reference](api.md)  
-   - [Usage Guide](usage.md)  
-   - [Examples](examples.md)  
-   - [Installation](installation.md)  
-6. [Contributing](contributing.md)  
-7. [License](LICENSE)  
+**mifarepy** is a Python library for interfacing with PROMAG RFID readers using the
+GNetPlus® serial protocol. It targets MIFARE Classic readers connected over RS-232/USB
+and exposes every documented command through a clean, typed Python API.
 
 ---
 
-## 🚀 Introduction
+## Features
 
-`mifarepy` provides a clear, Pythonic interface to PROMAG, MF5, MF10, and other MIFARE-compatible RFID readers. Whether you are building an access-control system 🚪, an inventory tracker 📦, or simply experimenting with RFID cards 🎴 in your workshop, **mifarepy** makes it easy to send commands and interpret responses.
+| Category | What you get |
+|---|---|
+| **Card detection** | `get_uid()`, `get_uid_int()`, `scan_tag()`, `is_card_present()`, `ping()`, `wait_for_card()`, `wait_for_card_async()` |
+| **Authentication** | `authenticate_sector()` (SAVE_KEY + AUTHENTICATE), `authenticate_sector_cached()` (AUTHENTICATE_KEY, skip reload) |
+| **Block I/O** | `read_block()`, `write_block()`, `read_sector()`, `write_sector()`, `write_sector_uniform()` |
+| **Bulk I/O** | `read_blocks()` / `write_blocks()` with per-sector `SectorAuth` |
+| **Value blocks** | `create_value_block()`, `read_value()`, `write_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()` |
+| **Reader control** | `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
+| **Async** | `wait_for_card_async()` — non-blocking asyncio support |
+| **Type safety** | `@overload` on `read_block` / `get_second_sn`, `Literal['A','B']`, `SectorAuth`, `CardInfo` |
+| **Error detail** | `InvalidMessage.raw_bytes`, `GNetPlusError.nak_code` |
 
-## ✨ Features
+---
 
-- **💾 Low-level protocol support:** Pack and parse GNetPlus® messages with CRC  
-- **🔍 Automatic card detection:** Enable/disable event mode, wait for card arrivals  
-- **🧩 Card operations:** Read/write single blocks or entire sectors  
-- **⚡ Bulk reads/writes:** Map-based reads across multiple sectors or blocks  
-- **🐍 Python 3.6+ support:** Works on Linux, macOS, and Windows (via COM ports)  
-- **🔧 Extensible and testable:** Separation of protocol and device logic for easier testing  
+## Quick start
 
-## 🏁 Getting Started
+```python
+from mifarepy import MifareReader
 
-### 📦 Installation
+KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default
 
-Install the latest stable release from PyPI:
+with MifareReader('/dev/ttyUSB0') as reader:
+    print('Reader:', reader.get_version())
+    print('Card UID:', reader.get_uid())         # e.g. '0xEDCEF8C3'
+
+    reader.authenticate_sector(0, KEY)
+    data = reader.read_sector(combine=True)      # 48-char hex string
+    print('Sector 0 data:', data)
+```
+
+---
+
+## Installation
 
 ```bash
 pip install mifarepy
 ```
 
-For active development, clone this repository and install in editable mode:
+See [Installation](installation.md) for more options.
 
-```bash
-git clone https://github.com/SparkDrago05/mifarepy.git
-cd mifarepy_project
-pip install -e .
-```
+---
 
-### ⚙️ Quickstart
+## Navigation
 
-Here is a minimal example to detect a card, read its UID, and fetch a data block:
-
-```python
-from mifarepy.reader import MifareReader
-
-# 1. Initialize the reader on the serial port
-reader = MifareReader('/dev/ttyUSB0')
-
-# 2. Enable auto-mode and wait for a card
-reader.set_auto_mode(True)
-uid = reader.wait_for_card(timeout=5)
-print(f"Card UID: {uid}")
-
-# 3. Authenticate and read block 4
-default_key = bytes.fromhex('FFFFFFFFFFFF')
-reader.authenticate_sector(sector=1, key=default_key)
-block4 = reader.read_block(4)
-print(f"Block 4 (hex): {block4.hex()}")
-```
-
-## 🧠 Core Concepts
-
-### 🔗 Protocol Layer
-
-All GNetPlus® message framing, CRC calculations, and exceptions are implemented in `mifarepy/protocol.py`:
-
-- **`Message`**: Base class, handles SOH, addressing, function codes, data, CRC.  
-- **`QueryMessage`**: Subclass with constants for each command (e.g., `REQUEST`, `READ_BLOCK`).  
-- **`ResponseMessage`**: Parses incoming replies, detects `ACK`, `NAK`, and event notifications.  
-- **`gencrc()`**: Utility to compute 16-bit CRC as per the protocol specification.  
-
-### 📡 Reader API
-
-The high-level interface lives in `mifarepy/reader.py`:
-
-- **`MifareReader`**: Connects to a serial port, sends queries, and returns parsed responses.  
-- **Methods include:**  
-  - `get_version()` 🔖  
-  - `set_auto_mode()` / `wait_for_card()` ⏱️  
-  - `get_sn()` 🆔  
-  - `authenticate_sector()` 🔐  
-  - `read_block()` / `write_block()` 📚  
-  - `read_sector()` / `write_sector()` 🔄  
-
-All methods raise `GNetPlusError` or `InvalidMessage` on protocol or hardware errors.
-
-## 📚 Detailed Guides
-
-- **API Reference:** Full descriptions of classes and functions — see [api.md].  
-- **Usage Guide:** Common workflows and best practices — see [usage.md].  
-- **Examples:** Real-world code samples — see [examples.md].  
-- **Configuration and Troubleshooting:** Tips for serial-port permissions, timeouts, and error recovery.  
-
-## 🤝 Contributing
-
-We welcome contributions! Please read our [contributing guidelines](contributing.md) for details on setting up your development environment, code style, and submitting pull requests. ❤️
-
-## 🏷️ License
-
-`mifarepy` is released under the **LGPL v3.0 or later**. See the [LICENSE](LICENSE) file for full terms.
+- [Installation](installation.md) — pip, from source, Raspberry Pi setup
+- [Usage Guide](usage.md) — all APIs explained with worked examples
+- [API Reference](api.md) — complete method signatures and docstrings
+- [Examples](examples.md) — 9 runnable example scripts

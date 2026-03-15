@@ -7,6 +7,7 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+.cache/
 
 # Ignore virtual environment
 venv/
@@ -21,6 +22,7 @@ pytest_cache/
 .vscode/
 .idea/
 .DS_Store
+.specstory/
 
 # Ignore MkDocs files
 site/
