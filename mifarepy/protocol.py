@@ -1,22 +1,130 @@
 import logging
 import serial
 import struct
-from typing import Optional, Union
+from dataclasses import dataclass
+from typing import Literal, Optional, Union
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class InvalidMessage(Exception):
-    """Raised when an invalid message is received from the RFID reader."""
-    pass
+    """Raised when an invalid message is received from the RFID reader.
+
+    Attributes:
+        raw_bytes: The partial bytes that were read from the serial port before
+                   the error occurred.  Useful for low-level debugging.
+    """
+
+    def __init__(self, message: str, raw_bytes: bytes = b'') -> None:
+        super().__init__(message)
+        self.raw_bytes = raw_bytes
+
+
+# Mapping of known NAK payload bytes to human-readable descriptions.
+# Based on GNetPlus® protocol documentation.
+_NAK_CODES: dict[bytes, str] = {
+    b'\x01': 'Invalid command',
+    b'\x02': 'Invalid length',
+    b'\x03': 'CRC error',
+    b'\x04': 'Invalid address',
+    b'\x05': 'Authentication failed',
+    b'\x06': 'Card not present',
+    b'\x07': 'Read error',
+    b'\x08': 'Write error',
+    b'\x09': 'Invalid block',
+    b'\x0A': 'Invalid sector',
+    b'\x0B': 'Invalid key',
+    b'\x0C': 'Timeout',
+}
 
 
 class GNetPlusError(Exception):
     """
     Exception thrown when receiving a NAK (negative acknowledge) response.
+
+    Attributes:
+        raw: Raw NAK payload bytes from the reader.
+        code_description: Human-readable description of the NAK code if known.
     """
-    pass
+
+    def __init__(self, message: str, raw: bytes = b'') -> None:
+        super().__init__(message)
+        self.raw = raw
+        self.code_description: str = _NAK_CODES.get(raw, 'Unknown error')
+        #: Integer NAK code (``raw[0]``), or ``0`` when raw is not a single byte.
+        self.nak_code: int = raw[0] if len(raw) == 1 else 0
+
+
+@dataclass
+class SectorAuth:
+    """Per-sector authentication configuration for :meth:`~mifarepy.MifareReader.read_blocks`
+    and :meth:`~mifarepy.MifareReader.write_blocks`.
+
+    Pass a ``dict[sector, SectorAuth]`` to the ``auth`` keyword argument of
+    those methods to supply per-sector keys in a discoverable, IDE-friendly
+    way instead of the legacy ``keys=`` / ``key_types=`` dict juggling.
+
+    Fields:
+        key:      6-byte MIFARE authentication key.
+        key_type: ``'A'`` (default) or ``'B'``.
+        timeout:  Per-sector auth timeout in seconds (default ``1.0``).
+        flush:    Flush the serial input buffer before reading (default ``True``).
+
+    Example::
+
+        from mifarepy import SectorAuth
+
+        reader.read_blocks(
+            {1: [0, 1], 2: [0]},
+            auth={
+                1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
+                2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
+            },
+        )
+    """
+
+    key: bytes
+    key_type: Literal['A', 'B'] = 'A'
+    timeout: float = 1.0
+    flush: bool = True
+
+    def __post_init__(self) -> None:
+        if self.key_type not in ('A', 'B'):
+            raise ValueError("key_type must be 'A' or 'B'")
+        if len(self.key) != 6:
+            raise ValueError('key must be exactly 6 bytes')
+
+
+@dataclass
+class CardInfo:
+    """Information about a card detected and selected in the RF field.
+
+    Returned by :meth:`~mifarepy.MifareReader.scan_tag`.  Provides the UID
+    in multiple representations so callers can use whatever is most convenient
+    without extra conversion.
+
+    Fields:
+        uid:       UID formatted as ``'0xAABBCCDD'`` (always uppercase, zero-padded).
+        uid_int:   Unsigned 32-bit integer.
+        uid_bytes: Raw 4-byte response from ANTI_COLLISION (little-endian byte order).
+
+    Example::
+
+        card = reader.scan_tag()
+        print(card)                  # '0xEDCEF8C3'
+        print(card.uid_int)          # 3989956803
+        print(card.uid_bytes.hex())  # 'c3f8ceed'
+    """
+
+    uid: str
+    uid_int: int
+    uid_bytes: bytes
+
+    def __str__(self) -> str:
+        return self.uid
+
+    def __repr__(self) -> str:
+        return f'CardInfo(uid={self.uid!r})'
 
 
 def gencrc(msg_bytes: bytes) -> int:
@@ -36,7 +144,7 @@ def gencrc(msg_bytes: bytes) -> int:
     return crc
 
 
-class Message(object):
+class Message:
     """
     Base class representing a message for the RFID reader.
     """
@@ -97,21 +205,21 @@ class Message(object):
         header = serial_port.read(4)
 
         if len(header) < 4:
-            raise InvalidMessage('Incomplete header')
+            raise InvalidMessage('Incomplete header', raw_bytes=header)
 
         soh, address, function, length = struct.unpack('BBBB', header)
 
         if soh != cls.SOH:
-            raise InvalidMessage('SOH does not match')
+            raise InvalidMessage('SOH does not match', raw_bytes=header)
 
         data = serial_port.read(length)
         crc = serial_port.read(2)
         if len(data) < length or len(crc) < 2:
-            raise InvalidMessage('Incomplete data or CRC')
+            raise InvalidMessage('Incomplete data or CRC', raw_bytes=header + data + crc)
 
         msg = cls(address=address, function=function, data=data)
         if bytes(msg)[-2:] != crc:
-            raise InvalidMessage('CRC does not match')
+            raise InvalidMessage('CRC does not match', raw_bytes=header + data + crc)
 
         return msg
 
@@ -147,7 +255,7 @@ class QueryMessage(Message):
     RESERVE = 0x18
     ENABLE_AUTO_MODE = 0x19
     GET_TIME_ADJUST = 0x1A
-    ECHO = 0x18
+    ECHO = 0x1B  # 0x18 was wrong (collision with RESERVE); correct value per GNetPlus spec
     SET_TIME_ADJUST = 0x1C
     DEBUG = 0x1D
     RESET = 0x1E
@@ -184,13 +292,19 @@ class ResponseMessage(Message):
     NAK = 0x15  # Negative Acknowledge
     EVN = 0x12  # Event Notification
 
+    # Known EVN payload byte for card insertion event.
+    EVN_CARD_IN: bytes = b'I'
+
     def to_error(self) -> Optional[GNetPlusError]:
         """
-        Convert a NAK response into a GNetPlusError.
+        Convert a NAK response into a GNetPlusError with code description.
 
-        @returns Constructed instance of GNetPlusError for this response
+        @returns GNetPlusError if this is a NAK response, else None.
         """
         if self.function == self.NAK:
-            return GNetPlusError(f'Error: {repr(self.data)}')
-
+            desc = _NAK_CODES.get(self.data, 'Unknown error')
+            return GNetPlusError(
+                f'NAK received — {desc} (raw={self.data!r})',
+                raw=self.data,
+            )
         return None

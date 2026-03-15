@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mifarepy"
-version = "2.0"
-description = "Python library for interfacing with MIFARE RFID card readers using mifarepy protocol"
+dynamic = ["version"]
+description = "Python library for interfacing with MIFARE RFID card readers using the GNetPlus® protocol"
 authors = [
     { name = "Spark Drago", email = "huzaifa.farooq05@gmail.com" }
 ]
@@ -13,7 +13,7 @@ license = { file = "LICENSE" }
 dependencies = [
     "pyserial"
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 readme = { file = "README.md", content-type = "text/markdown" }
 classifiers = [
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
@@ -25,7 +25,7 @@ classifiers = [
 packages = ["mifarepy"]
 
 [tool.setuptools.package-data]
-mifarepy = ["*.txt", "*.md"]
+mifarepy = ["*.txt", "*.md", "py.typed"]
 
 [tool.setuptools.dynamic]
 version = {attr = "mifarepy.__version__"}
