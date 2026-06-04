@@ -29,3 +29,8 @@ mifarepy = ["*.txt", "*.md", "py.typed"]
 
 [tool.setuptools.dynamic]
 version = {attr = "mifarepy.__version__"}
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
