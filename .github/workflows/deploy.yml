@@ -1,6 +1,12 @@
 name: Deploy MkDocs Site
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Docs version"
+        required: true
+        default: "v3.0.0"
   push:
     branches: [main]
     tags:
@@ -30,8 +36,7 @@ jobs:
           pip install mkdocs-material mike mkdocs-git-authors-plugin
 
       - name: Deploy versioned docs
-        if: startsWith(github.ref, 'refs/tags/')
         env:
-          VERSION: ${{ github.ref_name }}
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
         run: |
           mike deploy --push --update-aliases --branch gh-pages "$VERSION" latest
