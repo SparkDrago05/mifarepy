@@ -1,8 +1,8 @@
 site_name: mifarepy
 site_description: "Documentation for the mifarepy project."
 site_author: "Spark Drago"
-site_url: "https://aarsol-pvt-ltd.github.io/mifarepy/"
-repo_url: "https://github.com/AARSOL-Pvt-Ltd/mifarepy/"
+site_url: "https://SparkDrago05.github.io/mifarepy/"
+repo_url: "https://github.com/SparkDrago05/mifarepy/"
 repo_name: "mifarepy"
 theme:
   name: material
@@ -77,7 +77,7 @@ extra:
           data: 0
           note: >-
             Thanks for your feedback! Help us improve this page by
-            opening a <a href="https://github.com/AARSOL-Pvt-Ltd/mifarepy/issues/new?template=feedback.md" target="_blank" rel="noopener">feedback issue</a>.
+            opening a <a href="https://github.com/SparkDrago05/mifarepy/issues/new?template=feedback.md" target="_blank" rel="noopener">feedback issue</a>.
 
   version:
     provider: mike

@@ -3,8 +3,7 @@ name: Deploy MkDocs Site
 on:
   push:
     branches: [ main ]
-  # optionally, also on:
-  #   tags: [ 'v*.*.*' ]
+    tags: [ 'v*.*.*' ]
 
 jobs:
   deploy:
