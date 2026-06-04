@@ -1,7 +1,7 @@
 # API Reference
 
 Complete reference for all public classes, dataclasses, exceptions, and methods in
-**mifarepy v3.0**.
+**mifarepy v3.0.0**.
 
 ---
 
@@ -204,7 +204,7 @@ n = reader.get_uid_int()   # 3989956803
 
 #### `get_sn(endian='little', as_string=True)` *(deprecated)*
 
-> **Deprecated in v3.0.** Use `get_uid()` or `get_uid_int()` instead.
+> **Deprecated in v3.0.0** Use `get_uid()` or `get_uid_int()` instead.
 
 The `endian` parameter lets you choose byte order, which was confusing.  The new
 methods always use little-endian (matching `struct.pack('<L', ...)`).

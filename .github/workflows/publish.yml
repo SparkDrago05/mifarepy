@@ -1,6 +1,5 @@
 name: Publish to PyPI
 
-# Trigger when a version tag (e.g. v2.1.0) is pushed or a GitHub Release is published.
 on:
   push:
     tags:
