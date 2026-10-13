@@ -5,7 +5,7 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/mifarepy)](https://pepy.tech/projects/mifarepy)
 [![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/SparkDrago05/mifarepy)](https://github.com/SparkDrago05/mifarepy/issues)
-<!-- [![Build Status](https://github.com/SparkDrago05/mifarepy/actions/workflows/build.yml/badge.svg)](https://github.com/SparkDrago05/mifarepy/actions) -->
+[![Tests](https://github.com/SparkDrago05/mifarepy/actions/workflows/test.yml/badge.svg)](https://github.com/SparkDrago05/mifarepy/actions/workflows/test.yml)
 
 ## **Overview**
 
@@ -183,7 +183,7 @@ For further details, refer to:
 ## **License**
 
 This project is licensed under **GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later)**.  
-See [COPYING](./COPYING) for full details.
+See [LICENSE](./LICENSE) for the LGPL-3.0 text and [COPYING](./COPYING) for the GPL-3.0 text it builds on.
 
 ---
 
