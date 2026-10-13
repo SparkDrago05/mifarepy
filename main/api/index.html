@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1908,7 +1908,7 @@ debugging.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nd">@dataclass</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">SectorAuth</span><span class="p">:</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">key</span><span class="p">:</span> <span class="nb">bytes</span>                        <span class="c1"># 6-byte MIFARE authentication key (required)</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">key_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">key_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'A'</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">flush</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 </code></pre></div>
@@ -1918,8 +1918,8 @@ construction time.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">SectorAuth</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">sa</span> <span class="o">=</span> <span class="n">SectorAuth</span><span class="p">(</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">&#39;A0A1A2A3A4A5&#39;</span><span class="p">),</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">key_type</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'A0A1A2A3A4A5'</span><span class="p">),</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">key_type</span><span class="o">=</span><span class="s1">'B'</span><span class="p">,</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">timeout</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">)</span>
 </code></pre></div>
@@ -1927,16 +1927,16 @@ construction time.</p>
 <h3 id="cardinfo"><code>CardInfo</code></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nd">@dataclass</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">CardInfo</span><span class="p">:</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">uid</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># &#39;0xAABBCCDD&#39; (always 10 chars, upper-case)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">uid</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># '0xAABBCCDD' (always 10 chars, upper-case)</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">uid_int</span><span class="p">:</span> <span class="nb">int</span>      <span class="c1"># unsigned 32-bit integer</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">uid_bytes</span><span class="p">:</span> <span class="nb">bytes</span>  <span class="c1"># raw 4-byte ANTI_COLLISION response (little-endian)</span>
 </code></pre></div>
 <p>Returned by <code>scan_tag()</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">card</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">scan_tag</span><span class="p">()</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">str</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>         <span class="c1"># &#39;0xEDCEF8C3&#39;</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">repr</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>        <span class="c1"># &quot;CardInfo(uid=&#39;0xEDCEF8C3&#39;)&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">str</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>         <span class="c1"># '0xEDCEF8C3'</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">repr</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>        <span class="c1"># "CardInfo(uid='0xEDCEF8C3')"</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">card</span><span class="o">.</span><span class="n">uid_int</span>      <span class="c1"># 3989956803</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">card</span><span class="o">.</span><span class="n">uid_bytes</span>    <span class="c1"># b&#39;\xc3\xf8\xce\xed&#39;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">card</span><span class="o">.</span><span class="n">uid_bytes</span>    <span class="c1"># b'\xc3\xf8\xce\xed'</span>
 </code></pre></div>
 <hr />
 <h3 id="message-querymessage-responsemessage"><code>Message</code> / <code>QueryMessage</code> / <code>ResponseMessage</code></h3>
@@ -2063,7 +2063,7 @@ construction time.</p>
 <hr />
 <h4 id="constructor">Constructor</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">MifareReader</span><span class="p">(</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">port</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">,</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="n">port</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span>
 <a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="n">baudrate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">19200</span><span class="p">,</span>
 <a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">deviceaddr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>   <span class="c1"># forwarded to serial.Serial</span>
@@ -2074,11 +2074,11 @@ construction time.</p>
 <p>Raises <code>RuntimeError</code> if the port cannot be opened.</p>
 <hr />
 <h4 id="context-manager-__repr__">Context manager / <code>__repr__</code></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="o">...</span>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nb">repr</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># &quot;MifareReader(port=&#39;/dev/ttyUSB0&#39;, baudrate=19200, addr=0, open)&quot;</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># "MifareReader(port='/dev/ttyUSB0', baudrate=19200, addr=0, open)"</span>
 </code></pre></div>
 <p><code>close()</code> disables auto mode before closing the port to avoid spurious EVN events
 in the next session.</p>
@@ -2087,7 +2087,7 @@ in the next session.</p>
 <h4 id="get_uid-str"><code>get_uid() -&gt; str</code></h4>
 <p>Run <strong>REQUEST → ANTI_COLLISION</strong> and return the UID as <code>'0xAABBCCDD'</code>.
 Does not call SELECT — use <code>scan_tag()</code> when you need an active card.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">uid</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_uid</span><span class="p">()</span>   <span class="c1"># &#39;0xEDCEF8C3&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">uid</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_uid</span><span class="p">()</span>   <span class="c1"># '0xEDCEF8C3'</span>
 </code></pre></div>
 <h4 id="get_uid_int-int"><code>get_uid_int() -&gt; int</code></h4>
 <p>Same as <code>get_uid()</code> but returns an unsigned 32-bit integer.</p>
@@ -2116,14 +2116,14 @@ advanced multi-card workflows.</p>
 <p>One-shot: <strong>REQUEST → ANTI_COLLISION → SELECT_CARD</strong>.  Returns a
 <code>CardInfo</code> dataclass.  The card is left in the <em>active</em> state.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">card</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">scan_tag</span><span class="p">()</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>           <span class="c1"># &#39;0xEDCEF8C3&#39;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>           <span class="c1"># '0xEDCEF8C3'</span>
 <a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">card</span><span class="o">.</span><span class="n">uid_int</span><span class="p">)</span>   <span class="c1"># 3989956803</span>
 </code></pre></div>
 <h4 id="ping-bool"><code>ping() -&gt; bool</code></h4>
 <p>Send <strong>POLLING</strong> (opcode <code>0x00</code>) and return <code>True</code> if the reader acknowledges.
 Use this to verify the serial connection without interacting with any card.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">reader</span><span class="o">.</span><span class="n">ping</span><span class="p">():</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Reader not responding&#39;</span><span class="p">)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">'Reader not responding'</span><span class="p">)</span>
 </code></pre></div>
 <h4 id="is_card_present-bool"><code>is_card_present() -&gt; bool</code></h4>
 <p>Non-blocking: send a single <strong>REQUEST</strong> and return <code>True</code> if a card responded.
@@ -2139,9 +2139,9 @@ Returns the card UID string.  Raises <code>TimeoutError</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
 <a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
 <a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>        <span class="n">uid</span> <span class="o">=</span> <span class="k">await</span> <span class="n">reader</span><span class="o">.</span><span class="n">wait_for_card_async</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
-<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Card:&#39;</span><span class="p">,</span> <span class="n">uid</span><span class="p">)</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>        <span class="nb">print</span><span class="p">(</span><span class="s1">'Card:'</span><span class="p">,</span> <span class="n">uid</span><span class="p">)</span>
 <a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
 <a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </code></pre></div>
@@ -2156,8 +2156,8 @@ Returns the card UID string.  Raises <code>TimeoutError</code>.</p>
 </ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="n">sector</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">&#39;FFFFFFFFFFFF&#39;</span><span class="p">),</span>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">key_type</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">),</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">key_type</span><span class="o">=</span><span class="s1">'A'</span><span class="p">,</span>
 <a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="p">)</span>
 </code></pre></div>
 <h4 id="authenticate_sector_cachedsector-key_typea-timeout10"><code>authenticate_sector_cached(sector, key_type='A', timeout=1.0)</code></h4>
@@ -2201,7 +2201,7 @@ Returns the reader's echoed ACK payload as a hex string.</p>
 <h4 id="write_sector_uniformdata"><code>write_sector_uniform(data)</code></h4>
 <p>Explicit, intent-revealing alias for the 16-byte path of <code>write_sector()</code>.
 Writes the same 16 bytes to blocks 0, 1, and 2.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">write_sector_uniform</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x00</span><span class="s1">&#39;</span> <span class="o">*</span> <span class="mi">16</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">write_sector_uniform</span><span class="p">(</span><span class="sa">b</span><span class="s1">'</span><span class="se">\x00</span><span class="s1">'</span> <span class="o">*</span> <span class="mi">16</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h3 id="bulk-cross-sector-io">Bulk cross-sector I/O</h3>
@@ -2214,8 +2214,8 @@ Writes the same 16 bytes to blocks 0, 1, and 2.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="n">results</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_blocks</span><span class="p">(</span>
 <a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]},</span>
 <a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    <span class="n">auth</span><span class="o">=</span><span class="p">{</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>        <span class="mi">1</span><span class="p">:</span> <span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">&#39;FFFFFFFFFFFF&#39;</span><span class="p">)),</span>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>        <span class="mi">3</span><span class="p">:</span> <span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">&#39;A0A1A2A3A4A5&#39;</span><span class="p">),</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">),</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>        <span class="mi">1</span><span class="p">:</span> <span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">)),</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>        <span class="mi">3</span><span class="p">:</span> <span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'A0A1A2A3A4A5'</span><span class="p">),</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'B'</span><span class="p">),</span>
 <a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>    <span class="p">},</span>
 <a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="p">)</span>
 </code></pre></div>
@@ -2248,7 +2248,7 @@ Raises <code>ValueError</code> on int32 overflow.</p>
 <h3 id="reader-control">Reader control</h3>
 <h4 id="get_version-str"><code>get_version() -&gt; str</code></h4>
 <p>Return the firmware/hardware version string.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>   <span class="c1"># &#39;PGM0487 V1.4R0 (Build:110609)&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>   <span class="c1"># 'PGM0487 V1.4R0 (Build:110609)'</span>
 </code></pre></div>
 <h4 id="set_auto_modeenabledtrue-bytes"><code>set_auto_mode(enabled=True) -&gt; bytes</code></h4>
 <p>Enable (<code>True</code>) or disable (<code>False</code>) event-notification mode.  When enabled, the
@@ -2391,7 +2391,7 @@ discarded until a non-event frame arrives.  Raises <code>GNetPlusError</code> on
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
