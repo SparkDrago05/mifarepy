@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "build"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,17 +9,36 @@ description = "Python library for interfacing with MIFARE RFID card readers usin
 authors = [
     { name = "Spark Drago", email = "huzaifa.farooq05@gmail.com" }
 ]
-license = { file = "LICENSE" }
+license = "LGPL-3.0-or-later"
+license-files = ["LICENSE", "COPYING"]
 dependencies = [
     "pyserial"
 ]
 requires-python = ">=3.9"
 readme = { file = "README.md", content-type = "text/markdown" }
+keywords = ["mifare", "rfid", "nfc", "gnetplus", "card-reader", "serial", "pyserial"]
 classifiers = [
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent"
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Communications",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Hardware",
+    "Typing :: Typed",
 ]
+
+[project.urls]
+Homepage = "https://github.com/SparkDrago05/mifarepy"
+Documentation = "https://sparkdrago05.github.io/mifarepy/"
+Source = "https://github.com/SparkDrago05/mifarepy"
+Issues = "https://github.com/SparkDrago05/mifarepy/issues"
 
 [tool.setuptools]
 packages = ["mifarepy"]
