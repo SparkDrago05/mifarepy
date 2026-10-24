@@ -80,3 +80,6 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # The tag push and the GitHub release both run this workflow
+          skip-existing: true
