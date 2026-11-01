@@ -35,11 +35,10 @@ git checkout -b feature/your-topic
 ```bash
 python3 -m venv venv
 source venv/bin/activate    # Windows: venv\Scripts\activate
-pip install -e .
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"
 ```
 
-- This installs **mifarepy** in editable mode and developer dependencies (linting, testing).
+- This installs **mifarepy** in editable mode with the test dependencies.
 
 ---
 

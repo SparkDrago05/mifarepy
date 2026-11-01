@@ -1,0 +1,38 @@
+name: Bug report
+description: Something does not work with your reader or card
+labels: [bug]
+body:
+  - type: input
+    id: reader
+    attributes:
+      label: Reader model
+      placeholder: PCR310U, MF5, MF10 ...
+    validations:
+      required: true
+  - type: input
+    id: connection
+    attributes:
+      label: Connection
+      description: RS232 or USB serial, and the port
+      placeholder: /dev/ttyUSB0
+  - type: input
+    id: versions
+    attributes:
+      label: mifarepy, Python and OS versions
+      placeholder: mifarepy 3.0.0, Python 3.12, Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: What you ran
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened and what you expected
+      description: Include the traceback, and the card type if it matters.
+    validations:
+      required: true
