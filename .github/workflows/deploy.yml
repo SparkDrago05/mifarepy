@@ -1,19 +1,36 @@
 name: Deploy MkDocs Site
 
+# Versioned docs with mike:
+#   - a release tag vX.Y.Z publishes version "X.Y.Z" and moves the "latest" alias to it
+#   - a push to main refreshes the "dev" version (unreleased docs)
+#   - a manual run can (re)build any tag or branch as any version, e.g. to backfill old releases
+
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Docs version"
-        required: true
-        default: "v3.0.0"
   push:
     branches: [main]
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build (tag or branch), e.g. v3.0.0"
+        required: true
+        default: "main"
+      version:
+        description: "Docs version name, e.g. 3.0.0 (use 'dev' for unreleased docs)"
+        required: true
+        default: "dev"
+      latest:
+        description: "Also point the 'latest' alias at this version"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -22,26 +39,57 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
           fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install documentation dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[docs]"
+          pip install mkdocs-material "mkdocstrings[python]" mike mkdocs-git-authors-plugin
+          pip install -e .
 
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages --depth=1 || true
+
+      - name: Work out version
+        id: v
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          IN_VERSION: ${{ github.event.inputs.version }}
+          IN_LATEST: ${{ github.event.inputs.latest }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            version="$IN_VERSION"; latest="$IN_LATEST"
+          elif [ "$REF_TYPE" = "tag" ]; then
+            version="${REF_NAME#v}"; latest="true"
+          else
+            version="dev"; latest="false"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "Deploying docs version '$version' (latest=$latest)"
 
       - name: Deploy versioned docs
         env:
-          VERSION: ${{ github.event.inputs.version || github.ref_name }}
+          VERSION: ${{ steps.v.outputs.version }}
+          LATEST: ${{ steps.v.outputs.latest }}
         run: |
-          mike deploy --push --update-aliases --branch gh-pages "$VERSION" latest
+          if [ "$LATEST" = "true" ]; then
+            mike deploy --push --update-aliases "$VERSION" latest
+            mike set-default --push latest
+          elif [ "$VERSION" = "dev" ]; then
+            mike deploy --push --title "dev (unreleased)" dev
+          else
+            mike deploy --push "$VERSION"
+          fi
