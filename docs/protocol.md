@@ -133,12 +133,18 @@ Key type codes: **Key A = `0x60`**, **Key B = `0x61`**. Value operation codes:
 **increment = `0xC1`**, **decrement = `0xC0`**.
 
 !!! note "Verified value operations"
-    `increment_value()` and `decrement_value()` send `0x26`; `transfer()` and
-    `restore()` send `0x34` then `0x33`. mifarepy reads the block back to check
-    the result. If a reader rejects these commands (`0xE1` / `0xE6`) or the
-    result is unexpected, it falls back to writing the value with `0x28` and
-    remembers that for the rest of the session. Pass
-    `MifareReader(..., value_ops='software')` or `'native'` to choose one path.
+    `transfer()` and `restore()` send `0x34` then `0x33`. mifarepy reads the
+    block back to check the result. If a reader rejects these commands
+    (`0xE1` / `0xE6`) or the result is unexpected, it falls back to writing the
+    value with `0x28` and remembers that for the rest of the session.
+
+    `increment_value()` and `decrement_value()` read the value and write the
+    new one with `0x28`. They send `0x26` only with
+    `MifareReader(..., value_ops='native')`: on PCR310U firmware
+    `PGM0487 V1.4R0`, `0x26` and `0x32` drop bit 7 of every delta byte and
+    lose carries (for example 1000 + 250 gives 866), and some decrements are
+    rejected with NAK `0x06`. Pass `value_ops='software'` to avoid native
+    commands entirely.
 
 ## Error codes
 

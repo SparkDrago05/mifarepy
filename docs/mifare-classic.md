@@ -179,11 +179,13 @@ print(reader.read_value(block=1))
 ```
 
 !!! note "How mifarepy changes values"
-    `increment_value()` and `decrement_value()` use the card's own increment
-    and decrement operations, so they also work on blocks whose access
-    conditions allow decrementing but not writing (access bits `0 0 1`).
-    `transfer()` and `restore()` use the card's restore/transfer buffer.
-    Every operation is checked by reading the block back. For money-like
+    `increment_value()` and `decrement_value()` read the value and write the
+    new one, so the block's access conditions must allow writing. With
+    `value_ops='native'` they use the card's own increment and decrement
+    operations instead, which also work on decrement-only blocks (access bits
+    `0 0 1`) on readers whose firmware computes them correctly (see
+    [Protocol](protocol.md)). `transfer()` and `restore()` use the card's
+    restore/transfer buffer and are checked by reading the block back. For money-like
     balances, also keep a backup copy in a second block and the authoritative
     balance on your server.
 
