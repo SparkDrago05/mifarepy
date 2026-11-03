@@ -175,6 +175,11 @@ reader.write_sector({0: b'\xAA'*16, 2: b'\xBB'*16})   # selective dict
 reader.write_sector_uniform(b'\x00' * 16)
 ```
 
+The sector helpers use the layout of the sector you last authenticated. On a
+MIFARE Classic 4K card, sectors 32–39 have 15 data blocks, so after
+`authenticate_sector(35, key)` the call `read_sector()` returns blocks 0–14.
+Pass `sector=` to choose the layout explicitly.
+
 ### Bulk cross-sector I/O
 
 ```python
@@ -234,6 +239,17 @@ reader.transfer(source_block=0, dest_block=1)
 
 # Re-commit (repair after partial failure)
 reader.restore(block=0)
+```
+
+Increment, decrement, transfer and restore use the reader's native value
+commands and then read the block back to confirm the result. If a reader does
+not support those commands, mifarepy falls back to writing the new value
+directly. You can pick one behaviour explicitly:
+
+```python
+MifareReader('/dev/ttyUSB0', value_ops='auto')      # default: native, verified, with fallback
+MifareReader('/dev/ttyUSB0', value_ops='native')    # native only; raise on any problem
+MifareReader('/dev/ttyUSB0', value_ops='software')  # read-modify-write only (pre-3.1 behaviour)
 ```
 
 ---

@@ -27,13 +27,23 @@ import logging
 import struct
 import time
 import warnings
-from typing import Literal, Optional, Union, overload
+from typing import Any, Literal, Optional, Union, overload
 
 import serial
 
+from . import layout
 from .protocol import CardInfo, GNetPlusError, QueryMessage, ResponseMessage, SectorAuth
 
 logger = logging.getLogger(__name__)
+
+#: Operation codes for the SET_VALUE / SET_VALUEEX commands.
+VALUE_INCREMENT = 0xC1
+VALUE_DECREMENT = 0xC0
+
+#: NAK codes meaning "this reader does not implement that command".
+_UNSUPPORTED_COMMAND_NAKS = frozenset({0xE1, 0xE6})
+
+ValueOps = Literal['auto', 'native', 'software']
 
 
 class MifareReader:
@@ -48,7 +58,15 @@ class MifareReader:
     ```
     """
 
-    def __init__(self, port: str = '/dev/ttyUSB0', baudrate: int = 19200, deviceaddr: int = 0, **kwargs):
+    def __init__(
+        self,
+        port: str = '/dev/ttyUSB0',
+        baudrate: int = 19200,
+        deviceaddr: int = 0,
+        *,
+        value_ops: ValueOps = 'auto',
+        **kwargs: Any,
+    ) -> None:
         """
         Initialize the RFID reader connection.
 
@@ -56,13 +74,29 @@ class MifareReader:
             port: Serial port name (e.g., '/dev/ttyUSB0').
             baudrate: Baudrate for interfacing with the device. Don't change this unless you know what you're doing.
             deviceaddr: Device address (default: 0).
+            value_ops: How value-block arithmetic is performed.
+                ``'auto'`` (default) uses the reader's native value commands
+                (SET_VALUE / RESTORE / TRANSFER), verifies the result, and falls
+                back to read-modify-write if the reader does not support them.
+                ``'native'`` uses only the native commands; ``'software'`` uses
+                only read-modify-write (the behaviour before 3.1).
+            **kwargs: Extra keyword arguments passed to `serial.Serial`.
 
         Raises:
             RuntimeError: If the serial port cannot be opened.
         """
+        if value_ops not in ('auto', 'native', 'software'):
+            raise ValueError("value_ops must be 'auto', 'native' or 'software'")
         self.port = port
         self.baudrate = baudrate
         self.deviceaddr = deviceaddr
+        self.value_ops: ValueOps = value_ops
+        # None = not yet known; True/False once the reader has shown whether
+        # native value commands work.
+        self._native_values_ok: Optional[bool] = None
+        # Sector and key type of the most recent successful authentication.
+        self._auth_sector: Optional[int] = None
+        self._auth_key_type: Literal['A', 'B'] = 'A'
 
         try:
             self.serial = serial.Serial(port, baudrate=baudrate, **kwargs)
@@ -573,6 +607,7 @@ class MifareReader:
             self.readmsg()
         finally:
             self.serial.timeout = orig_timeout
+        self._remember_auth(sector, key_type)
 
     def authenticate_sector_cached(
         self,
@@ -616,6 +651,20 @@ class MifareReader:
             self.readmsg()
         finally:
             self.serial.timeout = orig_timeout
+        self._remember_auth(sector, key_type)
+
+    def _remember_auth(self, sector: int, key_type: str) -> None:
+        self._auth_sector = sector
+        self._auth_key_type = 'B' if key_type == 'B' else 'A'
+
+    def _sector_or_current(self, sector: Optional[int]) -> Optional[int]:
+        """Return *sector* if given, else the most recently authenticated sector."""
+        return sector if sector is not None else self._auth_sector
+
+    def _data_blocks(self, sector: Optional[int]) -> range:
+        """Relative data-block numbers for *sector* (3 blocks when unknown)."""
+        target = self._sector_or_current(sector)
+        return layout.data_blocks(target) if target is not None else range(3)
 
     @overload
     def read_block(self, block: int, raw: Literal[True]) -> bytes: ...
@@ -725,89 +774,189 @@ class MifareReader:
         self.sendmsg(QueryMessage.CREATE_VALUE_BLOCK, payload)
         self.readmsg()
 
+    # ------------------------------------------------------------------
+    # Value-block arithmetic: native commands with verification + fallback
+    # ------------------------------------------------------------------
+
+    def _use_native_values(self) -> bool:
+        if self.value_ops == 'software':
+            return False
+        if self.value_ops == 'native':
+            return True
+        return self._native_values_ok is not False
+
+    def _recover_after_nak(self) -> None:
+        """Re-authenticate after a failed native command (the card drops to IDLE)."""
+        if self._auth_sector is None:
+            raise RuntimeError(
+                'Cannot fall back to read-modify-write: no sector has been authenticated '
+                'on this reader yet. Call authenticate_sector() first.'
+            )
+        self.authenticate_sector_cached(self._auth_sector, self._auth_key_type)
+
+    def _run_native(self, commands: "list[tuple[int, bytes]]") -> Optional[GNetPlusError]:
+        """Send native value commands. Returns the NAK raised, or None on success."""
+        try:
+            for function, payload in commands:
+                self.sendmsg(function, payload)
+                self.readmsg()
+        except GNetPlusError as err:
+            return err
+        return None
+
+    def _value_operation(
+        self,
+        block: int,
+        expected: int,
+        commands: "list[tuple[int, bytes]]",
+        verify_block: Optional[int] = None,
+    ) -> None:
+        """Apply *commands* natively, verify *verify_block* holds *expected*, else fall back.
+
+        The fallback writes *expected* with CREATE_VALUE_BLOCK, which is how
+        mifarepy performed value arithmetic before native support existed.
+        """
+        target = block if verify_block is None else verify_block
+        if not self._use_native_values():
+            self.write_value(target, expected)
+            return
+
+        err = self._run_native(commands)
+        if err is not None:
+            if self.value_ops == 'native':
+                raise err
+            if err.nak_code in _UNSUPPORTED_COMMAND_NAKS:
+                self._native_values_ok = False
+                logger.info('Reader does not support native value commands; using read-modify-write')
+            else:
+                logger.debug('Native value command failed (%s); retrying as read-modify-write', err)
+            self._recover_after_nak()
+            self.write_value(target, expected)
+            return
+
+        actual = self.read_value(target)
+        if actual == expected:
+            self._native_values_ok = True
+            return
+
+        message = (
+            f'Native value command left block {target} at {actual}, expected {expected}'
+        )
+        if self.value_ops == 'native':
+            raise GNetPlusError(message)
+        logger.warning('%s; correcting it and switching to read-modify-write', message)
+        self._native_values_ok = False
+        self.write_value(target, expected)
+
+    @staticmethod
+    def _check_delta(delta: int) -> None:
+        if delta <= 0 or delta > 2**31 - 1:
+            raise ValueError('delta must be a positive 32-bit integer')
+
     def increment_value(self, block: int, delta: int) -> None:
         """
         Add *delta* to a MIFARE value block.
 
-        Implemented as read → add → write using READ_VALUE / SET_VALUE because
-        those are universally supported across all GNetPlus firmware versions.
+        Uses the reader's SET_VALUE command (increment + transfer) and reads
+        the block back to confirm the result. If the reader does not support
+        the command, or the result is not what was expected, the value is
+        written directly instead (see the ``value_ops`` constructor argument).
 
         Args:
-            block: Block index relative to the authenticated sector (0-2).
+            block: Block index relative to the authenticated sector.
             delta: Positive integer amount to add.
 
         Raises:
             ValueError: If delta ≤ 0 or if the result overflows int32.
             GNetPlusError: If the reader returns a NAK.
         """
-        if delta <= 0 or delta > 2**31 - 1:
-            raise ValueError('delta must be a positive 32-bit integer')
+        self._check_delta(delta)
         current = self.read_value(block)
         new_val = current + delta
-        if not (-2**31 <= new_val <= 2**31 - 1):
+        if new_val > 2**31 - 1:
             raise ValueError(
                 f'Increment overflows signed 32-bit range: {current} + {delta} = {new_val}'
             )
-        self.write_value(block, new_val)
+        payload = bytes([block, VALUE_INCREMENT]) + struct.pack('<i', delta)
+        self._value_operation(block, new_val, [(QueryMessage.SET_VALUE, payload)])
 
     def decrement_value(self, block: int, delta: int) -> None:
         """
         Subtract *delta* from a MIFARE value block.
 
-        Implemented as read → subtract → write using READ_VALUE / SET_VALUE.
+        Uses the reader's SET_VALUE command (decrement + transfer), which also
+        works on blocks whose access conditions allow decrement but not
+        write (for example prepaid balances). The result is read back and
+        verified; see `increment_value()` for the fallback behaviour.
 
         Args:
-            block: Block index relative to the authenticated sector (0-2).
+            block: Block index relative to the authenticated sector.
             delta: Positive integer amount to subtract.
 
         Raises:
             ValueError: If delta ≤ 0 or if the result underflows int32.
             GNetPlusError: If the reader returns a NAK.
         """
-        if delta <= 0 or delta > 2**31 - 1:
-            raise ValueError('delta must be a positive 32-bit integer')
+        self._check_delta(delta)
         current = self.read_value(block)
         new_val = current - delta
-        if not (-2**31 <= new_val <= 2**31 - 1):
+        if new_val < -2**31:
             raise ValueError(
                 f'Decrement underflows signed 32-bit range: {current} - {delta} = {new_val}'
             )
-        self.write_value(block, new_val)
+        payload = bytes([block, VALUE_DECREMENT]) + struct.pack('<i', delta)
+        self._value_operation(block, new_val, [(QueryMessage.SET_VALUE, payload)])
 
     def transfer(self, source_block: int, dest_block: int) -> None:
         """
-        Copy the current value from *source_block* to *dest_block*.
+        Copy the value in *source_block* to *dest_block*.
 
-        Both blocks must reside in the currently authenticated sector and must
-        already be formatted as value blocks.
+        Uses the card's RESTORE (load source into the transfer buffer) and
+        TRANSFER (write buffer to destination) commands, then verifies the
+        destination. Both blocks must be value blocks in the authenticated
+        sector.
 
         Args:
-            source_block: Block to read the value from (0-2).
-            dest_block: Block to write the value to (0-2).
+            source_block: Value block to copy from.
+            dest_block: Value block to copy to.
 
         Raises:
-            GNetPlusError: If either the read or write fails.
+            GNetPlusError: If either block cannot be read or written.
         """
         value = self.read_value(source_block)
-        self.write_value(dest_block, value)
+        self._value_operation(
+            source_block,
+            value,
+            [
+                (QueryMessage.RESTORE, bytes([source_block])),
+                (QueryMessage.TRANSFER, bytes([dest_block])),
+            ],
+            verify_block=dest_block,
+        )
 
     def restore(self, block: int) -> None:
         """
-        Re-commit the current on-card value back to the block.
+        Re-commit a value block: RESTORE it into the transfer buffer and
+        TRANSFER it back, rewriting the block in valid value format.
 
-        With the read-modify-write implementation used here every write is
-        immediately committed, so there is no in-flight state to undo.
-        This method reads the block and writes it back to guarantee the value
-        block format remains intact after any partial low-level failure.
+        Useful to repair a value block after an interrupted operation, as long
+        as its value can still be read.
 
         Args:
-            block: Block index relative to the authenticated sector (0-2).
+            block: Value block relative to the authenticated sector.
 
         Raises:
             GNetPlusError: If the reader returns a NAK.
         """
         value = self.read_value(block)
-        self.write_value(block, value)
+        self._value_operation(
+            block,
+            value,
+            [
+                (QueryMessage.RESTORE, bytes([block])),
+                (QueryMessage.TRANSFER, bytes([block])),
+            ],
+        )
 
     # ------------------------------------------------------------------
     # Sector-level read / write
@@ -820,26 +969,29 @@ class MifareReader:
         combine: bool = False,
     ) -> "Union[dict[int, Union[str, bytes]], Union[str, bytes]]":
         """
-        Read data blocks 0, 1, and 2 of the currently authenticated sector
-        (block 3 is the sector trailer and is intentionally skipped).
+        Read every data block of the authenticated sector (the trailer is skipped).
+
+        That is blocks 0-2 for sectors 0-31, and blocks 0-14 for the large
+        sectors 32-39 of a MIFARE Classic 4K card.
 
         Authenticate the sector with ``authenticate_sector`` before calling this.
 
         Args:
-            sector: Sector number -- used for logging only; does not affect
-                which blocks are read (authenticate separately).
+            sector: Sector whose layout to use. Defaults to the sector most
+                recently authenticated on this reader (or a 4-block sector if
+                none has been). It does not authenticate for you.
             raw: If True returns bytes; otherwise hex strings.
-            combine: If True concatenates all three blocks into a single value.
+            combine: If True concatenates all data blocks into a single value.
 
         Returns:
-            Dict mapping relative block index (0-2) to data, or combined value.
+            Dict mapping relative block index to data, or the combined value.
 
         Raises:
             GNetPlusError: If any block read fails.
         """
         results: dict[int, Union[str, bytes]] = {}
 
-        for block in range(3):
+        for block in self._data_blocks(sector):
             results[block] = self.read_block(block, raw=raw)
 
         if combine:
@@ -847,60 +999,75 @@ class MifareReader:
 
         return results
 
-    def write_sector(self, data: "Union[str, bytes, dict[int, Union[str, bytes]]]") -> None:
+    def write_sector(
+        self,
+        data: "Union[str, bytes, dict[int, Union[str, bytes]]]",
+        sector: "Optional[int]" = None,
+    ) -> None:
         """
-        Write data to blocks 0, 1, and/or 2 of the currently authenticated sector.
+        Write data blocks of the authenticated sector. The trailer is never written.
 
-        Supported data shapes:
-          - **16 bytes** / **32-char hex** -- same blob written to blocks 0, 1, and 2.
-          - **48 bytes** / **96-char hex** -- split into three 16-byte chunks for blocks 0-2.
-          - **dict** mapping block indices (0-2) to 16-byte blobs or hex strings.
+        Supported data shapes (*n* = number of data blocks: 3, or 15 for 4K sectors 32-39):
+          - **16 bytes** / **32-char hex** -- the same blob written to every data block.
+          - **16 × k bytes** (k ≤ *n*) -- split into 16-byte chunks for blocks 0 … k-1.
+          - **dict** mapping data-block indices to 16-byte blobs or hex strings.
+
+        Args:
+            data: The data to write, in one of the shapes above.
+            sector: Sector whose layout to use. Defaults to the most recently
+                authenticated sector.
 
         Raises:
-            ValueError: If data is an invalid size or dict contains bad block keys.
+            ValueError: If data is an invalid size or a dict key is not a data block.
             GNetPlusError: If any write fails.
         """
+        blocks = self._data_blocks(sector)
+
         if isinstance(data, str):
             data = bytes.fromhex(data)
 
-        if isinstance(data, (bytes, bytearray)) and len(data) == 16:
-            for block in (0, 1, 2):
-                self.write_block(block, data)
-            return
-
-        if isinstance(data, (bytes, bytearray)) and len(data) == 16 * 3:
-            for i, block in enumerate((0, 1, 2)):
-                self.write_block(block, data[i * 16:(i + 1) * 16])
-            return
-
         if isinstance(data, dict):
-            for block, blob in data.items():
-                if block not in (0, 1, 2):
+            for block in data:
+                if block not in blocks:
                     raise ValueError(
-                        f'Block key {block!r} invalid; must be 0, 1, or 2 '
-                        '(block 3 is the sector trailer)'
+                        f'Block key {block!r} invalid; must be {blocks.start}-{blocks.stop - 1} '
+                        f'(block {blocks.stop} is the sector trailer)'
                     )
+            for block, blob in data.items():
                 if isinstance(blob, str):
                     blob = bytes.fromhex(blob)
                 self.write_block(block, blob)
             return
 
+        if isinstance(data, (bytes, bytearray)) and len(data) == 16:
+            for block in blocks:
+                self.write_block(block, data)
+            return
+
+        if (isinstance(data, (bytes, bytearray)) and data
+                and len(data) % 16 == 0 and len(data) // 16 <= len(blocks)):
+            for i in range(len(data) // 16):
+                self.write_block(blocks[i], data[i * 16:(i + 1) * 16])
+            return
+
         length = len(data) if isinstance(data, (bytes, bytearray)) else 'unknown'
         raise ValueError(
-            f'Unsupported data: must be 16 or 48 bytes (or equivalent hex), '
-            f'or a dict of block->16-byte blobs. Got length={length!r}'
+            f'Unsupported data: must be 16 bytes or a multiple of 16 up to {16 * len(blocks)} bytes '
+            f'(or equivalent hex), or a dict of block->16-byte blobs. Got length={length!r}'
         )
 
-    def write_sector_uniform(self, data: Union[str, bytes]) -> None:
-        """Write the same 16 bytes to blocks 0, 1, *and* 2 of the authenticated sector.
+    def write_sector_uniform(self, data: Union[str, bytes], sector: "Optional[int]" = None) -> None:
+        """Write the same 16 bytes to every data block of the authenticated sector.
 
         This is an explicit, intent-revealing alias for the 16-byte dispatch
-        path of `write_sector()`.  Use it when you deliberately want
-        every data block in the sector to hold identical content (e.g. bulk
-        wipe / factory-reset workflows).
+        path of `write_sector()`. Use it when you deliberately want every
+        data block in the sector to hold identical content (e.g. bulk wipe /
+        factory-reset workflows).
 
         Args:
             data: Exactly 16 bytes or a 32-character hex string.
+            sector: Sector whose layout to use. Defaults to the most recently
+                authenticated sector.
 
         Raises:
             ValueError: If *data* is not exactly 16 bytes.
@@ -910,7 +1077,7 @@ class MifareReader:
             data = bytes.fromhex(data)
         if len(data) != 16:
             raise ValueError('data must be exactly 16 bytes')
-        for block in (0, 1, 2):
+        for block in self._data_blocks(sector):
             self.write_block(block, data)
 
     # ------------------------------------------------------------------
@@ -1052,4 +1219,4 @@ class MifareReader:
                 for block, data in spec.items():
                     self.write_block(block, data)
             else:
-                self.write_sector(spec)
+                self.write_sector(spec, sector=sector)

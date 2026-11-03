@@ -11,6 +11,7 @@
 # option) any later version. See the LICENSE and COPYING files for details.
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+from . import layout
 from .protocol import (
     CardInfo,
     GNetPlusError,
@@ -23,7 +24,7 @@ from .protocol import (
 )
 from .reader import MifareReader
 
-__version__ = '3.0.1'
+__version__ = '3.1.0'
 
 __all__ = [
     'CardInfo',
@@ -36,4 +37,5 @@ __all__ = [
     'SectorAuth',
     '__version__',
     'gencrc',
+    'layout',
 ]

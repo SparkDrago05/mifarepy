@@ -33,8 +33,24 @@ A MIFARE Classic card is divided into **sectors**. Each sector holds
 
 !!! info "Relative block numbers in mifarepy"
     `read_block()` and `write_block()` take the block number **relative to the
-    authenticated sector** (0–3 on a 1K card). `read_sector()` and
-    `write_sector()` cover the data blocks 0–2 and **never touch the trailer**.
+    authenticated sector**: 0–3 in a 4-block sector, 0–15 in a large 4K sector.
+    `read_sector()` and `write_sector()` cover the sector's data blocks (0–2,
+    or 0–14 for sectors 32–39) and **never touch the trailer**.
+
+The `mifarepy.layout` module does the arithmetic for you:
+
+```python
+from mifarepy import layout
+
+layout.blocks_in_sector(35)    # 16
+layout.data_blocks(35)         # range(0, 15)
+layout.absolute_block(35, 0)   # 176
+layout.sector_of(176)          # (35, 0)
+```
+
+!!! warning "4K large sectors"
+    Large-sector support follows the card's memory map. It has been tested
+    with a simulated reader only, so try it on a spare 4K card first.
 
 ### Block 0: the manufacturer block
 
@@ -163,10 +179,13 @@ print(reader.read_value(block=1))
 ```
 
 !!! note "How mifarepy changes values"
-    `increment_value()`, `decrement_value()`, `transfer()` and `restore()` read
-    the current value, check for 32-bit overflow and write the new value back.
-    Each call is a separate read and write, so for money-like balances keep a
-    backup copy in a second block and verify after writing.
+    `increment_value()` and `decrement_value()` use the card's own increment
+    and decrement operations, so they also work on blocks whose access
+    conditions allow decrementing but not writing (access bits `0 0 1`).
+    `transfer()` and `restore()` use the card's restore/transfer buffer.
+    Every operation is checked by reading the block back. For money-like
+    balances, also keep a backup copy in a second block and the authoritative
+    balance on your server.
 
 ## Security notes
 

@@ -28,6 +28,13 @@ from mifarepy import (
     options:
       heading_level: 3
 
+## Card layout
+
+::: mifarepy.layout
+    options:
+      heading_level: 3
+      show_root_heading: true
+
 ## Errors
 
 ::: mifarepy.protocol.GNetPlusError

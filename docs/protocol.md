@@ -112,7 +112,7 @@ readers typically implement polling, version, address, echo and reset.
 | `0x23` | Authenticate | key type + sector | — | `authenticate_sector()` |
 | `0x24` | Read block | block | 16 bytes | `read_block()`, `read_sector()`, `read_blocks()` |
 | `0x25` | Write block | block + 16 bytes | — | `write_block()`, `write_sector()`, `write_blocks()` |
-| `0x26` | Set value (with transfer) | block + op + value | — | <span class="mp-no">not wrapped</span> |
+| `0x26` | Set value (with transfer) | block + op + value | — | `increment_value()`, `decrement_value()` |
 | `0x27` | Read value | block | value (4 bytes) | `read_value()` |
 | `0x28` | Create value block | block (+ value) | — | `create_value_block()`, `write_value()` |
 | `0x29` | Write access conditions | keys + access bits (+ GPB) | — | <span class="mp-no">not wrapped</span> |
@@ -123,8 +123,8 @@ readers typically implement polling, version, address, echo and reset.
 | `0x2E` | Authenticate with stored key | key type + sector | — | `authenticate_sector_cached()` |
 | `0x2F` | Request all | — | card type | `request_all()` |
 | `0x32` | Set value (without transfer) | block + op + value | — | <span class="mp-no">not wrapped</span> |
-| `0x33` | Transfer | block | — | <span class="mp-no">not wrapped</span> |
-| `0x34` | Restore | block | — | <span class="mp-no">not wrapped</span> |
+| `0x33` | Transfer | block | — | `transfer()`, `restore()` |
+| `0x34` | Restore | block | — | `transfer()`, `restore()` |
 | `0x3D` | Get sector by application ID | AID | sector | <span class="mp-no">not wrapped</span> |
 | `0x3E` | RF field on/off | `0` / `1` | — | `rf_power()` |
 | `0x3F` | Auto mode on/off | `0` / `1` | current mode | `set_auto_mode()` |
@@ -132,10 +132,13 @@ readers typically implement polling, version, address, echo and reset.
 Key type codes: **Key A = `0x60`**, **Key B = `0x61`**. Value operation codes:
 **increment = `0xC1`**, **decrement = `0xC0`**.
 
-!!! note
-    mifarepy's `increment_value()`, `decrement_value()`, `transfer()` and
-    `restore()` work by reading the value and writing it back, rather than
-    through the `0x26`, `0x32`, `0x33` and `0x34` commands.
+!!! note "Verified value operations"
+    `increment_value()` and `decrement_value()` send `0x26`; `transfer()` and
+    `restore()` send `0x34` then `0x33`. mifarepy reads the block back to check
+    the result. If a reader rejects these commands (`0xE1` / `0xE6`) or the
+    result is unexpected, it falls back to writing the value with `0x28` and
+    remembers that for the rest of the session. Pass
+    `MifareReader(..., value_ops='software')` or `'native'` to choose one path.
 
 ## Error codes
 

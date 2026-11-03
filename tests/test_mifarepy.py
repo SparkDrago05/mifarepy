@@ -374,7 +374,7 @@ def test_write_then_reauthenticate(monkeypatch):
     assert bytes([QueryMessage.SELECT_CARD]) in dummy.written
 
 
-# --- Value block operation tests (read-modify-write implementation) ---
+# --- Value block operation tests (value_ops="software": read-modify-write) ---
 
 def test_increment_value(monkeypatch):
     """increment_value reads current, adds delta, writes back."""
@@ -383,7 +383,7 @@ def test_increment_value(monkeypatch):
     resp_write = build_response(0, ResponseMessage.ACK, b'')
     dummy = DummySerial(resp_read + resp_write)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     r.increment_value(0, 250)  # 500 + 250 = 750
     # write_value internally uses create_value_block (CREATE_VALUE_BLOCK command)
     assert bytes([QueryMessage.CREATE_VALUE_BLOCK]) in dummy.written
@@ -398,7 +398,7 @@ def test_decrement_value(monkeypatch):
     resp_write = build_response(0, ResponseMessage.ACK, b'')
     dummy = DummySerial(resp_read + resp_write)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     r.decrement_value(0, 100)  # 1000 - 100 = 900
     assert bytes([QueryMessage.CREATE_VALUE_BLOCK]) in dummy.written
     assert struct.pack('<i', 900) in dummy.written
@@ -410,7 +410,7 @@ def test_increment_value_overflow(monkeypatch):
     resp_read  = build_response(0, ResponseMessage.ACK, val_bytes)
     dummy = DummySerial(resp_read)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     with pytest.raises(ValueError, match='overflow'):
         r.increment_value(0, 1)
 
@@ -421,7 +421,7 @@ def test_decrement_value_underflow(monkeypatch):
     resp_read  = build_response(0, ResponseMessage.ACK, val_bytes)
     dummy = DummySerial(resp_read)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     with pytest.raises(ValueError, match='underflow'):
         r.decrement_value(0, 1)
 
@@ -433,7 +433,7 @@ def test_transfer_value(monkeypatch):
     resp_write = build_response(0, ResponseMessage.ACK, b'')
     dummy = DummySerial(resp_read + resp_write)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     r.transfer(source_block=0, dest_block=1)
     assert bytes([QueryMessage.READ_VALUE]) in dummy.written
     assert bytes([QueryMessage.CREATE_VALUE_BLOCK]) in dummy.written
@@ -446,7 +446,7 @@ def test_restore_value(monkeypatch):
     resp_write = build_response(0, ResponseMessage.ACK, b'')
     dummy = DummySerial(resp_read + resp_write)
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
-    r = MifareReader()
+    r = MifareReader(value_ops='software')
     r.restore(0)
     assert bytes([QueryMessage.READ_VALUE]) in dummy.written
     assert bytes([QueryMessage.CREATE_VALUE_BLOCK]) in dummy.written
