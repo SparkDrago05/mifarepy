@@ -1,15 +1,59 @@
 name: Publish to PyPI
 
+# Two ways to release:
+#   1. Publish a GitHub release (or push a vX.Y.Z tag) -> test, build, upload to PyPI.
+#   2. Actions tab -> "Publish to PyPI" -> Run workflow on main. This reads the version
+#      from mifarepy/__init__.py, uploads it to PyPI, then creates the vX.Y.Z tag and the
+#      GitHub release (notes taken from CHANGELOG.md) and deploys that version's docs.
+
 on:
   push:
     tags:
       - "v[0-9]*"
   release:
     types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
+  prepare:
+    name: Check version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version and check it is new
+        id: v
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          version=$(python -c "import re;print(re.search(r\"__version__ = '([^']+)'\", open('mifarepy/__init__.py').read()).group(1))")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Package version: $version"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$REF_NAME" != "main" ]; then
+              echo "::error::Run manual releases from main (got $REF_NAME)"; exit 1
+            fi
+            if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+              echo "::error::Tag v$version already exists. Bump __version__ first."; exit 1
+            fi
+            if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+              echo "::error::CHANGELOG.md has no section for $version"; exit 1
+            fi
+          elif [ "${REF_NAME#v}" != "$version" ]; then
+            echo "::error::Tag $REF_NAME does not match package version $version"; exit 1
+          fi
+
   test:
     name: Test — Python ${{ matrix.python-version }}
+    needs: prepare
     runs-on: ubuntu-latest
 
     strategy:
@@ -45,14 +89,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
-      - name: Install build front-end
-        run: python -m pip install --upgrade build
+      - name: Install build tools
+        run: python -m pip install --upgrade build twine
 
       - name: Build sdist + wheel
         run: python -m build
+
+      - name: Check distribution metadata
+        run: twine check --strict dist/*
 
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v4
@@ -83,3 +130,57 @@ jobs:
         with:
           # The tag push and the GitHub release both run this workflow
           skip-existing: true
+
+  github-release:
+    name: Tag, GitHub release and docs
+    needs: [prepare, publish]
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Extract release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {on=1; next}
+            on && /^## \[/ {exit}
+            on {print}
+          ' CHANGELOG.md > notes.md
+          {
+            echo
+            echo "**Install:** \`pip install -U mifarepy==$VERSION\`"
+            echo
+            echo "**Docs:** https://sparkdrago05.github.io/mifarepy/$VERSION/"
+          } >> notes.md
+          cat notes.md
+
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          gh release create "v$VERSION" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "mifarepy $VERSION" \
+            --notes-file notes.md \
+            --latest
+
+      - name: Deploy docs for this version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          gh workflow run deploy.yml --ref main \
+            -f ref="v$VERSION" -f version="$VERSION" -f latest=true
