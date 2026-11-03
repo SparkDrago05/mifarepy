@@ -133,8 +133,9 @@ class MifareReader:
 
             break
 
-        if response.function == ResponseMessage.NAK:
-            raise response.to_error()
+        error = response.to_error()
+        if error is not None:
+            raise error
 
         return response
 

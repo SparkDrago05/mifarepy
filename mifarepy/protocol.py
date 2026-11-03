@@ -14,7 +14,7 @@
 import logging
 import struct
 from dataclasses import dataclass
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, TypeVar, Union
 
 import serial
 
@@ -177,6 +177,9 @@ def gencrc(msg_bytes: bytes) -> int:
     return crc
 
 
+_MessageT = TypeVar('_MessageT', bound='Message')
+
+
 class Message:
     """
     Base class representing a message for the RFID reader.
@@ -231,7 +234,7 @@ class Message:
         serial_port.write(bytes(self))
 
     @classmethod
-    def readfrom(cls, serial_port: serial.Serial) -> 'Message':
+    def readfrom(cls: type[_MessageT], serial_port: serial.Serial) -> _MessageT:
         """
         Reads a message from the serial port and constructs a Message instance.
 
