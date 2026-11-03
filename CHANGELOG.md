@@ -4,7 +4,7 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [3.1.0] - Unreleased
+## [3.1.0] - 2026-11-03
 
 ### Added
 - Native value-block arithmetic: `increment_value()` / `decrement_value()` use
@@ -56,15 +56,63 @@ All notable changes to mifarepy are documented here. The format follows
 
 ## [3.0.0] - 2026-06-04
 
-See the [GitHub release](https://github.com/SparkDrago05/mifarepy/releases/tag/v3.0.0).
+A developer-experience overhaul of the API, plus a test suite, runnable
+examples, a documentation site and CI.
+
+### Added
+- `get_uid()` returns the UID as `'0xAABBCCDD'` (always little-endian);
+  `get_uid_int()` returns it as an unsigned 32-bit integer.
+- `scan_tag()` runs REQUEST, ANTI_COLLISION and SELECT in one call and returns
+  a `CardInfo` (`uid`, `uid_int`, `uid_bytes`).
+- `ping()` and `is_card_present()` return a bool without raising.
+- `SectorAuth` for per-sector authentication settings, accepted by
+  `read_blocks(auth=...)` and `write_blocks(auth=...)`.
+- `authenticate_sector_cached()` authenticates with a key already stored in
+  the reader (AUTHENTICATE_KEY, `0x2E`).
+- `write_sector_uniform()`, an explicit helper for writing the same 16 bytes
+  to a whole sector.
+- `InvalidMessage.raw_bytes` and `GNetPlusError.nak_code` for error context.
+- Type hints (`py.typed`) and `@overload` on `read_block()`.
+- pytest suite, nine examples, MkDocs documentation site, CI.
+
+### Fixed
+- `read_sector()` no longer inserts a separator when joining blocks.
+
+### Deprecated
+- `get_sn()` emits a `DeprecationWarning`; use `get_uid()` or `get_uid_int()`.
 
 ## [2.0] - 2025-06-15
 
+### Added
+- `MifareReader` class for card operations.
+- Custom timeouts for reader responses.
+- Low-level send/receive API (`sendmsg()` / `readmsg()`) for advanced use.
+- `DummySerial` test helper and an expanded offline test suite.
+
+### Changed
+- **Breaking:** `Handle` renamed to `MifareReader`.
+- **Breaking:** `Card.read_block()` renamed to `read_sector()`.
+- Code restructured into the `mifarepy/` package; packaging via
+  `pyproject.toml` only.
+- Versioned documentation on GitHub Pages.
+
 ## [1.0.3] - 2025-03-21
+
+### Changed
+- Documentation migrated to MkDocs (Material theme) and published on
+  GitHub Pages: installation, usage, API reference and contributing guides.
+- Packaging moved from `setup.py` to a PEP 621 `pyproject.toml`.
+  No library code changes.
 
 ## [1.0.2] - 2025-03-15
 
-[3.1.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.1...HEAD
+First stable release on PyPI, renamed from `pymifare` to `mifarepy`.
+
+### Added
+- Python 3 port of gnetplus: GNetPlus protocol framing and CRC, reading card
+  serial numbers over USB or RS-232 serial.
+
+[3.1.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/SparkDrago05/mifarepy/compare/v2.0...v3.0.0
 [2.0]: https://github.com/SparkDrago05/mifarepy/compare/v1.0.3...v2.0
