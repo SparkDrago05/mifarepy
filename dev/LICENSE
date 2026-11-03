@@ -1,0 +1,82 @@
+GNU LESSER GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) 2024
+This file is part of the mifarepy project.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+### **GNU LESSER GENERAL PUBLIC LICENSE**
+Version 3, 29 June 2007
+
+Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates
+the terms and conditions of version 3 of the GNU General Public
+License, supplemented by the additional permissions listed below.
+
+### **Additional Definitions**
+
+1. "Library" refers to a covered work governed by this License,
+   other than an Application or a Combined Work as defined below.
+
+2. An "Application" is any work that makes use of an interface
+   provided by the Library, but which is not otherwise based on
+   the Library.
+
+3. A "Combined Work" is a work produced by combining or linking an
+   Application with the Library.
+
+4. The "Minimal Corresponding Source" for a Combined Work means the
+   Corresponding Source for the Combined Work, excluding any source
+   code for portions of the Combined Work that, considered in
+   isolation, are based on the Application, and not on the Library.
+
+5. The "Corresponding Application Code" for a Combined Work means
+   the object code and/or source code for the Application, including
+   any data and utility programs needed for reproducing the Combined
+   Work from the Application, but excluding the System Libraries of
+   the Combined Work.
+
+---
+
+### **Terms and Conditions**
+1. **You may copy and distribute verbatim copies of the Library’s complete source code**
+   as you receive it, in any medium, provided that you include a copy of this License.
+
+2. **You may modify the Library and distribute modified copies**
+   provided that:
+   - The modified work must be licensed under this License.
+   - The work must carry prominent notices stating that you changed the Library.
+   - You must keep any additional permissions granted.
+
+3. **You may convey a Combined Work under terms of your choice**
+   provided that you also meet these conditions:
+   - The Combined Work must be accompanied by a copy of this License.
+   - You must supply the Minimal Corresponding Source.
+   - You must ensure that users can modify the Library’s source code.
+
+---
+
+### **Disclaimer**
+THE LIBRARY IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.
+TO THE EXTENT PERMITTED BY APPLICABLE LAW, NEITHER THE COPYRIGHT
+HOLDER NOR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS THE
+LIBRARY SHALL BE LIABLE FOR ANY DAMAGES.
+
+For more details, see <https://www.gnu.org/licenses/>.
