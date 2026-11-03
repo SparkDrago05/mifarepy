@@ -32,7 +32,7 @@ from typing import Any, Literal, Optional, Union, overload
 import serial
 
 from . import layout
-from .protocol import CardInfo, GNetPlusError, QueryMessage, ResponseMessage, SectorAuth
+from .protocol import CardInfo, GNetPlusError, InvalidMessage, QueryMessage, ResponseMessage, SectorAuth
 
 logger = logging.getLogger(__name__)
 
@@ -419,8 +419,6 @@ class MifareReader:
         Raises:
             TimeoutError: If no card is detected within the timeout.
         """
-        self.set_auto_mode()
-
         try:
             card_sn = self.get_uid()
             if card_sn:
@@ -429,14 +427,33 @@ class MifareReader:
         except GNetPlusError:
             pass  # No card yet; wait for EVN
 
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            response = self.readmsg()
-            if (response.function == ResponseMessage.EVN
-                    and ResponseMessage.EVN_CARD_IN in response.data):
-                logger.info('Card insertion event received')
-                return self.get_uid()
-            time.sleep(0.1)
+        # Enable events only after the presence check: on PGM0487 V1.4R0 a
+        # REQUEST that finds no card stops EVN events until auto mode is set
+        # again. A card that arrived in between is reported as soon as auto
+        # mode is enabled.
+        self.set_auto_mode()
+
+        # Bound every read by the time left, otherwise a blocking serial port
+        # (timeout=None, the default) waits for an event forever.
+        deadline = time.monotonic() + timeout
+        orig_timeout = getattr(self.serial, 'timeout', None)
+        try:
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self.serial.timeout = remaining
+                try:
+                    response = self.readmsg()
+                except InvalidMessage:
+                    continue  # read timed out (or a partial frame); re-check the deadline
+                if (response.function == ResponseMessage.EVN
+                        and ResponseMessage.EVN_CARD_IN in response.data):
+                    logger.info('Card insertion event received')
+                    self.serial.timeout = orig_timeout
+                    return self.get_uid()
+        finally:
+            self.serial.timeout = orig_timeout
 
         raise TimeoutError('No card detected within the time limit')
 
@@ -473,7 +490,7 @@ class MifareReader:
         """
         loop = asyncio.get_event_loop()
         return await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: self.wait_for_card(int(timeout))),
+            loop.run_in_executor(None, lambda: self.wait_for_card(timeout)),
             timeout=timeout + 1,  # give the inner timeout a chance to fire first
         )
 
@@ -490,7 +507,8 @@ class MifareReader:
         """
         self.sendmsg(QueryMessage.GET_VERSION)
         response = self.readmsg().data
-        return response.decode('latin1', errors='ignore').strip()
+        # PGM0487 firmware pads the string with a trailing NUL.
+        return response.decode('latin1', errors='ignore').strip('\x00 \t\r\n')
 
     def set_auto_mode(self, enabled: bool = True) -> bytes:
         """
