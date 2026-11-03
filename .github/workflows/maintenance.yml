@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Delete merged branches
         run: |
-          for b in fix/phase1-cleanup feat/phase1-value-ops-4k; do
+          for b in fix/phase1-cleanup feat/phase1-value-ops-4k claude/admiring-wright-wyrvi5 chore/repo-metadata feature/dx-improvements-v3.0; do
             if gh api "repos/$REPO/branches/$b" >/dev/null 2>&1; then
               ahead=$(gh api "repos/$REPO/compare/main...$b" --jq .ahead_by)
               if [ "$ahead" = "0" ]; then
