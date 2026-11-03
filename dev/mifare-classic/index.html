@@ -1392,17 +1392,31 @@ Sectors 32–39 have <strong>16 blocks</strong> each: 15 data blocks and a trail
 <div class="admonition info">
 <p class="admonition-title">Relative block numbers in mifarepy</p>
 <p><code>read_block()</code> and <code>write_block()</code> take the block number <strong>relative to the
-authenticated sector</strong> (0–3 on a 1K card). <code>read_sector()</code> and
-<code>write_sector()</code> cover the data blocks 0–2 and <strong>never touch the trailer</strong>.</p>
+authenticated sector</strong>: 0–3 in a 4-block sector, 0–15 in a large 4K sector.
+<code>read_sector()</code> and <code>write_sector()</code> cover the sector's data blocks (0–2,
+or 0–14 for sectors 32–39) and <strong>never touch the trailer</strong>.</p>
+</div>
+<p>The <code>mifarepy.layout</code> module does the arithmetic for you:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">layout</span><span class="o">.</span><span class="n">blocks_in_sector</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>    <span class="c1"># 16</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">layout</span><span class="o">.</span><span class="n">data_blocks</span><span class="p">(</span><span class="mi">35</span><span class="p">)</span>         <span class="c1"># range(0, 15)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">layout</span><span class="o">.</span><span class="n">absolute_block</span><span class="p">(</span><span class="mi">35</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># 176</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">layout</span><span class="o">.</span><span class="n">sector_of</span><span class="p">(</span><span class="mi">176</span><span class="p">)</span>          <span class="c1"># (35, 0)</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">4K large sectors</p>
+<p>Large-sector support follows the card's memory map. It has been tested
+with a simulated reader only, so try it on a spare 4K card first.</p>
 </div>
 <h3 id="block-0-the-manufacturer-block">Block 0: the manufacturer block<a class="headerlink" href="#block-0-the-manufacturer-block" title="Permanent link">&para;</a></h3>
 <p>Block 0 of sector 0 holds the UID, a check byte and manufacturer data. On
 genuine cards it is written at the factory and is read-only. Do not rely on
 writing it.</p>
 <h2 id="the-sector-trailer">The sector trailer<a class="headerlink" href="#the-sector-trailer" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> Byte:  0  1  2  3  4  5 | 6  7  8 | 9  | 10 11 12 13 14 15
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        ---- Key A ----- | access  | GPB | ----- Key B -----
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                         |  bits   |     |
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a> Byte:  0  1  2  3  4  5 | 6  7  8 | 9  | 10 11 12 13 14 15
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        ---- Key A ----- | access  | GPB | ----- Key B -----
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                         |  bits   |     |
 </span></code></pre></div>
 <ul>
 <li><strong>Key A</strong> (6 bytes) can never be read back. The reader returns zeros.</li>
@@ -1415,8 +1429,8 @@ writing it.</p>
   make it readable.</li>
 </ul>
 <p>Fresh cards ship in the <strong>transport configuration</strong>:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>FF FF FF FF FF FF  FF 07 80  69  FF FF FF FF FF FF
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>     Key A          access   GPB      Key B
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>FF FF FF FF FF FF  FF 07 80  69  FF FF FF FF FF FF
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>     Key A          access   GPB      Key B
 </span></code></pre></div>
 <p>The default key is <code>FFFFFFFFFFFF</code>, and with these access bits Key A can read
 and write everything.</p>
@@ -1430,7 +1444,7 @@ refuse to write trailers. Write one only on purpose, with
 <h2 id="keys-and-authentication">Keys and authentication<a class="headerlink" href="#keys-and-authentication" title="Permanent link">&para;</a></h2>
 <p>Every read or write first needs <strong>authentication</strong> to the sector with either
 Key A or Key B:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="n">sector</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">),</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'A'</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="n">sector</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">),</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'A'</span><span class="p">)</span>
 </span></code></pre></div>
 <p>After that you may access any block of that sector that the access
 conditions allow for that key. Authenticating to another sector replaces the
@@ -1599,22 +1613,25 @@ cannot be used for authentication, and those bytes act as plain data.</p>
 <h2 id="value-blocks">Value blocks<a class="headerlink" href="#value-blocks" title="Permanent link">&para;</a></h2>
 <p>A value block stores a <strong>signed 32-bit integer</strong> in a redundant 16-byte
 format that the card can check:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a> Bytes 0-3   4-7    8-11   12   13    14   15
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>       value ~value value  adr  ~adr  adr  ~adr
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a> Bytes 0-3   4-7    8-11   12   13    14   15
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>       value ~value value  adr  ~adr  adr  ~adr
 </span></code></pre></div>
 <p>The value is little-endian and stored three times (once inverted). The last
 four bytes hold a block address used by backup schemes.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">create_value_block</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">reader</span><span class="o">.</span><span class="n">increment_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>    <span class="c1"># -&gt; 125</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">reader</span><span class="o">.</span><span class="n">decrement_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>    <span class="c1"># -&gt;  85</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">create_value_block</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">reader</span><span class="o">.</span><span class="n">increment_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>    <span class="c1"># -&gt; 125</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">reader</span><span class="o">.</span><span class="n">decrement_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>    <span class="c1"># -&gt;  85</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">read_value</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </span></code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">How mifarepy changes values</p>
-<p><code>increment_value()</code>, <code>decrement_value()</code>, <code>transfer()</code> and <code>restore()</code> read
-the current value, check for 32-bit overflow and write the new value back.
-Each call is a separate read and write, so for money-like balances keep a
-backup copy in a second block and verify after writing.</p>
+<p><code>increment_value()</code> and <code>decrement_value()</code> use the card's own increment
+and decrement operations, so they also work on blocks whose access
+conditions allow decrementing but not writing (access bits <code>0 0 1</code>).
+<code>transfer()</code> and <code>restore()</code> use the card's restore/transfer buffer.
+Every operation is checked by reading the block back. For money-like
+balances, also keep a backup copy in a second block and the authoritative
+balance on your server.</p>
 </div>
 <h2 id="security-notes">Security notes<a class="headerlink" href="#security-notes" title="Permanent link">&para;</a></h2>
 <p>MIFARE Classic uses NXP's proprietary Crypto1 cipher, which has been publicly
@@ -1648,12 +1665,13 @@ cards or loyalty points, and treat card data as <strong>untrusted input</strong>
   <span class="md-source-file__fact">
     <span class="md-icon" title="Contributors">
       
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 5.5A3.5 3.5 0 0 1 15.5 9a3.5 3.5 0 0 1-3.5 3.5A3.5 3.5 0 0 1 8.5 9 3.5 3.5 0 0 1 12 5.5M5 8c.56 0 1.08.15 1.53.42-.15 1.43.27 2.85 1.13 3.96C7.16 13.34 6.16 14 5 14a3 3 0 0 1-3-3 3 3 0 0 1 3-3m14 0a3 3 0 0 1 3 3 3 3 0 0 1-3 3c-1.16 0-2.16-.66-2.66-1.62a5.54 5.54 0 0 0 1.13-3.96c.45-.27.97-.42 1.53-.42M5.5 18.25c0-2.07 2.91-3.75 6.5-3.75s6.5 1.68 6.5 3.75V20h-13zM0 20v-1.5c0-1.39 1.89-2.56 4.45-2.9-.59.68-.95 1.62-.95 2.65V20zm24 0h-3.5v-1.75c0-1.03-.36-1.97-.95-2.65 2.56.34 4.45 1.51 4.45 2.9z"/></svg>
       
     </span>
     <nav>
       
-        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>
+        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>, 
+        <a href="mailto:huzaifa.farooq05@gmail.com">Huzaifa Farooq</a>
     </nav>
   </span>
 
