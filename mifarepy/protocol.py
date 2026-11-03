@@ -1,8 +1,22 @@
+# mifarepy -- Python library for MIFARE readers that speak the GNetPlus protocol
+# Copyright (C) 2025-2026 Spark Drago <https://github.com/SparkDrago05>
+#
+# Based on gnetplus (https://github.com/harishpillay/gnetplus)
+# Copyright (C) 2013 Red Hat Inc. -- Chow Loong Jin, Harish Pillay
+# (originally released under LGPL-2.1-or-later)
+#
+# This library is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version. See the LICENSE and COPYING files for details.
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
 import logging
-import serial
 import struct
 from dataclasses import dataclass
 from typing import Literal, Optional, Union
+
+import serial
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +34,33 @@ class InvalidMessage(Exception):
         self.raw_bytes = raw_bytes
 
 
-# Mapping of known NAK payload bytes to human-readable descriptions.
-# Based on GNetPlus® protocol documentation.
+# Mapping of NAK payload bytes to human-readable descriptions, following the
+# error-code table in the GIGA-TMS MIFARE Application Programming Guide
+# (TM970014, Annex B).  0x0X-0x3X are card/MIFARE errors; 0xE0-0xE6 are
+# GNetPlus framing/protocol errors.
 _NAK_CODES: dict[bytes, str] = {
-    b'\x01': 'Invalid command',
-    b'\x02': 'Invalid length',
-    b'\x03': 'CRC error',
-    b'\x04': 'Invalid address',
-    b'\x05': 'Authentication failed',
-    b'\x06': 'Card not present',
-    b'\x07': 'Read error',
-    b'\x08': 'Write error',
-    b'\x09': 'Invalid block',
-    b'\x0A': 'Invalid sector',
-    b'\x0B': 'Invalid key',
-    b'\x0C': 'Timeout',
+    b'\x03': 'Empty',
+    b'\x04': 'Authentication error',
+    b'\x09': 'Key error',
+    b'\x0A': 'Not authenticated',
+    b'\x0E': 'Transfer error',
+    b'\x0F': 'Write error',
+    b'\x10': 'Increment error',
+    b'\x11': 'Decrement error',
+    b'\x12': 'Read error',
+    b'\x1C': 'Access timeout',
+    b'\x1F': 'No tag in field',
+    b'\x27': 'Wrong parameter value',
+    b'\x2D': 'Host authentication error',
+    b'\x2F': 'Wrong DES key',
+    b'\x33': 'DES key load error',
+    b'\xE0': 'Command denied',
+    b'\xE1': 'Illegal command',
+    b'\xE2': 'Command overrun',
+    b'\xE3': 'Packet CRC error',
+    b'\xE4': 'Out of memory',
+    b'\xE5': 'Out of frame',
+    b'\xE6': 'Unknown command',
 }
 
 
@@ -57,30 +83,32 @@ class GNetPlusError(Exception):
 
 @dataclass
 class SectorAuth:
-    """Per-sector authentication configuration for :meth:`~mifarepy.MifareReader.read_blocks`
-    and :meth:`~mifarepy.MifareReader.write_blocks`.
+    """Per-sector authentication configuration for `read_blocks()`
+    and `write_blocks()`.
 
     Pass a ``dict[sector, SectorAuth]`` to the ``auth`` keyword argument of
     those methods to supply per-sector keys in a discoverable, IDE-friendly
     way instead of the legacy ``keys=`` / ``key_types=`` dict juggling.
 
-    Fields:
+    Attributes:
         key:      6-byte MIFARE authentication key.
         key_type: ``'A'`` (default) or ``'B'``.
         timeout:  Per-sector auth timeout in seconds (default ``1.0``).
         flush:    Flush the serial input buffer before reading (default ``True``).
 
-    Example::
+    Usage example:
 
-        from mifarepy import SectorAuth
+    ```python
+    from mifarepy import SectorAuth
 
-        reader.read_blocks(
-            {1: [0, 1], 2: [0]},
-            auth={
-                1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
-                2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
-            },
-        )
+    reader.read_blocks(
+        {1: [0, 1], 2: [0]},
+        auth={
+            1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
+            2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
+        },
+    )
+    ```
     """
 
     key: bytes
@@ -99,21 +127,23 @@ class SectorAuth:
 class CardInfo:
     """Information about a card detected and selected in the RF field.
 
-    Returned by :meth:`~mifarepy.MifareReader.scan_tag`.  Provides the UID
+    Returned by `scan_tag()`.  Provides the UID
     in multiple representations so callers can use whatever is most convenient
     without extra conversion.
 
-    Fields:
+    Attributes:
         uid:       UID formatted as ``'0xAABBCCDD'`` (always uppercase, zero-padded).
         uid_int:   Unsigned 32-bit integer.
         uid_bytes: Raw 4-byte response from ANTI_COLLISION (little-endian byte order).
 
-    Example::
+    Usage example:
 
-        card = reader.scan_tag()
-        print(card)                  # '0xEDCEF8C3'
-        print(card.uid_int)          # 3989956803
-        print(card.uid_bytes.hex())  # 'c3f8ceed'
+    ```python
+    card = reader.scan_tag()
+    print(card)                  # '0xEDCEF8C3'
+    print(card.uid_int)          # 3989956803
+    print(card.uid_bytes.hex())  # 'c3f8ceed'
+    ```
     """
 
     uid: str
@@ -131,8 +161,11 @@ def gencrc(msg_bytes: bytes) -> int:
     """
     Generate a 16-bit CRC checksum.
 
-    @param msg_bytes: bytes containing message for checksum
-    @returns 16-bit integer containing CRC checksum
+    Args:
+        msg_bytes: bytes containing message for checksum
+
+    Returns:
+        16-bit integer containing CRC checksum
     """
     crc = 0xFFFF
 
@@ -155,9 +188,10 @@ class Message:
         """
         Initialize a message.
 
-        @param address: 8-bit device address (use 0 unless specified).
-        @param function: 8-bit function code representing the message type.
-        @param data: Message payload (bytes or string).
+        Args:
+            address: 8-bit device address (use 0 unless specified).
+            function: 8-bit function code representing the message type.
+            data: Message payload (bytes or string).
         """
         self.address = address
         self.function = function
@@ -167,7 +201,8 @@ class Message:
         """
         Converts Message to raw binary form suitable for transmission.
 
-        @return: Bytes representation of the message.
+        Returns:
+            Bytes representation of the message.
         """
         msg_bytes = struct.pack('BBB', self.address, self.function, len(self.data)) + self.data
         crc = gencrc(msg_bytes)
@@ -178,7 +213,8 @@ class Message:
         """
         Returns hex representation of the message.
 
-        @return: Hexadecimal string representation.
+        Returns:
+            Hexadecimal string representation.
         """
         return self.__bytes__().hex()
 
@@ -189,7 +225,8 @@ class Message:
         """
         Sends this message to the provided serial port.
 
-        @param serial_port: Serial port to send the message.
+        Args:
+            serial_port: Serial port to send the message.
         """
         serial_port.write(bytes(self))
 
@@ -198,9 +235,14 @@ class Message:
         """
         Reads a message from the serial port and constructs a Message instance.
 
-        @param serial_port: Serial interface to read from.
-        @return: Constructed Message instance.
-        @raises InvalidMessage: If message is incomplete or invalid.
+        Args:
+            serial_port: Serial interface to read from.
+
+        Returns:
+            Constructed Message instance.
+
+        Raises:
+            InvalidMessage: If message is incomplete or invalid.
         """
         header = serial_port.read(4)
 
@@ -226,7 +268,10 @@ class Message:
 
 class QueryMessage(Message):
     """
-    A query message to be sent from host machine to card reader device. Magical constants taken from protocol documentation.
+    A query message sent from the host to the reader.
+
+    Function codes follow the GNetPlus common command table (0x00-0x1F) and the
+    MIFARE application command table (0x20-0x3F).
     """
     POLLING = 0x00
     GET_VERSION = 0x01
@@ -299,7 +344,8 @@ class ResponseMessage(Message):
         """
         Convert a NAK response into a GNetPlusError with code description.
 
-        @returns GNetPlusError if this is a NAK response, else None.
+        Returns:
+            GNetPlusError if this is a NAK response, else None.
         """
         if self.function == self.NAK:
             desc = _NAK_CODES.get(self.data, 'Unknown error')

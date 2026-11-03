@@ -13,6 +13,7 @@ Usage:
 
 import asyncio
 import sys
+
 from mifarepy import MifareReader
 from mifarepy.protocol import GNetPlusError
 

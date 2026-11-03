@@ -1,18 +1,20 @@
-import pytest
 import struct
 import warnings
+
+import pytest
+import serial
+
+from mifarepy import MifareReader
 from mifarepy.protocol import (
-    gencrc,
+    CardInfo,
+    GNetPlusError,
+    InvalidMessage,
     Message,
     QueryMessage,
     ResponseMessage,
-    InvalidMessage,
-    GNetPlusError,
     SectorAuth,
-    CardInfo,
+    gencrc,
 )
-from mifarepy import MifareReader
-import serial
 
 
 # --- Helpers for building fake serial interactions ---
@@ -92,11 +94,24 @@ def test_response_to_error_and_ack():
 
 
 def test_gnetplus_error_known_nak_code():
-    # b'\x05' maps to 'Authentication failed'
-    err = ResponseMessage(0, ResponseMessage.NAK, b'\x05')
+    # b'\x04' is AUTHENTICATE ERROR in the vendor error-code table
+    err = ResponseMessage(0, ResponseMessage.NAK, b'\x04')
     exc = err.to_error()
-    assert exc.code_description == 'Authentication failed'
-    assert 'Authentication failed' in str(exc)
+    assert exc.code_description == 'Authentication error'
+    assert exc.nak_code == 0x04
+    assert 'Authentication error' in str(exc)
+
+
+def test_gnetplus_error_no_tag_and_protocol_codes():
+    no_tag = ResponseMessage(0, ResponseMessage.NAK, b'\x1f').to_error()
+    assert no_tag.code_description == 'No tag in field'
+    crc = ResponseMessage(0, ResponseMessage.NAK, b'\xe3').to_error()
+    assert crc.code_description == 'Packet CRC error'
+
+
+def test_gnetplus_error_unknown_nak_code():
+    exc = ResponseMessage(0, ResponseMessage.NAK, b'\x99').to_error()
+    assert exc.code_description == 'Unknown error'
 
 
 def test_evn_card_in_constant():
@@ -263,8 +278,7 @@ def test_context_manager(monkeypatch):
     closed = []
 
     class TrackingSerial(DummySerial):
-        def isOpen(self):
-            return True
+        is_open = True
         def close(self):
             closed.append(True)
 
@@ -506,8 +520,7 @@ def test_card_info_str_and_repr():
 
 def test_mifarereader_repr(monkeypatch):
     class TrackingSerial(DummySerial):
-        def isOpen(self):
-            return True
+        is_open = True
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: TrackingSerial(b''))
     r = MifareReader('/dev/ttyUSB0', baudrate=19200, deviceaddr=0)
     text = repr(r)

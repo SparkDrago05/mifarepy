@@ -1,13 +1,15 @@
-# mifarepy -- Python library for interfacing with PROMAG RFID card reader
-# Adapted from https://github.com/harishpillay/gnetplus (initially in Python 2)
+# mifarepy -- Python library for MIFARE readers that speak the GNetPlus protocol
+# Copyright (C) 2025-2026 Spark Drago <https://github.com/SparkDrago05>
 #
-# Authors:
-#     Original: Chow Loong Jin <lchow@redhat.com>
-#     Original: Harish Pillay <hpillay@redhat.com>
-#     Adapted by: Spark Drago <https://github.com/SparkDrago05>
+# Based on gnetplus (https://github.com/harishpillay/gnetplus)
+# Copyright (C) 2013 Red Hat Inc. -- Chow Loong Jin, Harish Pillay
+# (originally released under LGPL-2.1-or-later)
 #
-# This library is released under the GNU Lesser General Public License v3.0 or later.
-# See the LICENCE file for more details.
+# This library is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version. See the LICENSE and COPYING files for details.
+# SPDX-License-Identifier: LGPL-3.0-or-later
 
 
 """
@@ -31,11 +33,13 @@ License:
 
 import asyncio
 import logging
-import serial
 import struct
 import time
 import warnings
 from typing import Literal, Optional, Union, overload
+
+import serial
+
 from .protocol import CardInfo, GNetPlusError, QueryMessage, ResponseMessage, SectorAuth
 
 logger = logging.getLogger(__name__)
@@ -45,20 +49,25 @@ class MifareReader:
     """
     Class for interfacing with the RFID card reader.
 
-    Can be used as a context manager to ensure the serial port is closed::
+    Can be used as a context manager to ensure the serial port is closed:
 
-        with MifareReader('/dev/ttyUSB0') as reader:
-            uid = reader.get_sn()
+    ```python
+    with MifareReader('/dev/ttyUSB0') as reader:
+        uid = reader.get_sn()
+    ```
     """
 
     def __init__(self, port: str = '/dev/ttyUSB0', baudrate: int = 19200, deviceaddr: int = 0, **kwargs):
         """
         Initialize the RFID reader connection.
 
-        @param port: Serial port name (e.g., '/dev/ttyUSB0').
-        @param baudrate: Baudrate for interfacing with the device. Don't change this unless you know what you're doing.
-        @param deviceaddr: Device address (default: 0).
-        @raises RuntimeError: If the serial port cannot be opened.
+        Args:
+            port: Serial port name (e.g., '/dev/ttyUSB0').
+            baudrate: Baudrate for interfacing with the device. Don't change this unless you know what you're doing.
+            deviceaddr: Device address (default: 0).
+
+        Raises:
+            RuntimeError: If the serial port cannot be opened.
         """
         self.port = port
         self.baudrate = baudrate
@@ -67,7 +76,7 @@ class MifareReader:
         try:
             self.serial = serial.Serial(port, baudrate=baudrate, **kwargs)
         except serial.SerialException as pe:
-            raise RuntimeError(f'Unable to open port {port}: {pe}')
+            raise RuntimeError(f'Unable to open port {port}: {pe}') from pe
 
     # ------------------------------------------------------------------
     # Resource management
@@ -80,7 +89,7 @@ class MifareReader:
         clean, command-driven state so the next session does not receive
         spurious EVN events or NAK responses from a lingering event mode.
         """
-        if hasattr(self, 'serial') and self.serial.isOpen():
+        if hasattr(self, 'serial') and getattr(self.serial, 'is_open', False):
             try:
                 self.set_auto_mode(False)
             except Exception:
@@ -94,7 +103,7 @@ class MifareReader:
         self.close()
 
     def __repr__(self) -> str:
-        state = 'open' if (hasattr(self, 'serial') and self.serial.isOpen()) else 'closed'
+        state = 'open' if (hasattr(self, 'serial') and getattr(self.serial, 'is_open', False)) else 'closed'
         return f'MifareReader(port={self.port!r}, baudrate={self.baudrate}, addr={self.deviceaddr}, {state})'
 
     # ------------------------------------------------------------------
@@ -105,8 +114,9 @@ class MifareReader:
         """
         Construct and send a QueryMessage to the RFID reader.
 
-        @param function: @see Message.function
-        @param data: @see Message.data
+        Args:
+            function: @see Message.function
+            data: @see Message.data
         """
         QueryMessage(self.deviceaddr, function, data).sendto(self.serial)
 
@@ -115,9 +125,14 @@ class MifareReader:
         Read a message, optionally ignoring EVN (event) messages which are
         device-driven.
 
-        @param sink_events: If True, silently discard EVN messages.
-        @return: Constructed ResponseMessage instance.
-        @raises GNetPlusError: If a NAK response is received.
+        Args:
+            sink_events: If True, silently discard EVN messages.
+
+        Returns:
+            Constructed ResponseMessage instance.
+
+        Raises:
+            GNetPlusError: If a NAK response is received.
         """
         while True:
             response = ResponseMessage.readfrom(self.serial)
@@ -137,10 +152,13 @@ class MifareReader:
         Resolve a parameter that can be either a scalar (applied to all sectors)
         or a dict mapping sector number to a per-sector value.
 
-        @param param: Scalar value or dict[sector -> value].
-        @param sector: Current sector number being processed.
-        @param default: Fallback if param is None or sector not in dict.
-        @return: Resolved value for this sector.
+        Args:
+            param: Scalar value or dict[sector -> value].
+            sector: Current sector number being processed.
+            default: Fallback if param is None or sector not in dict.
+
+        Returns:
+            Resolved value for this sector.
         """
         if isinstance(param, dict):
             return param.get(sector, default)
@@ -160,7 +178,7 @@ class MifareReader:
     def _detect_card_uid_all(self) -> bytes:
         """Send REQUEST_ALL + ANTI_COLLISION; return the raw 4-byte UID bytes.
 
-        Unlike :meth:`_detect_card_uid`, this wakes HALT-state cards too.
+        Unlike `_detect_card_uid()`, this wakes HALT-state cards too.
         """
         self.sendmsg(QueryMessage.REQUEST_ALL)
         self.readmsg(sink_events=True)
@@ -173,17 +191,20 @@ class MifareReader:
 
     def get_sn(self, endian: str = 'little', as_string: bool = True) -> Union[str, int]:
         """
-        .. deprecated::
-            Use :meth:`get_uid` (returns ``'0xAABBCCDD'`` string) or
-            :meth:`get_uid_int` (returns unsigned integer) instead.
-
         Get the serial number of the card currently in the RF field.
 
-        @param endian: ``'big'`` or ``'little'``.  Selects byte order for the
-                       4-byte UID from the ANTI_COLLISION response.
-        @param as_string: If ``True`` returns ``'0xAABBCCDD'`` hex string;
-                          otherwise an unsigned integer.
-        @return: Card UID as hex string or integer.
+        Warning: Deprecated
+            Use `get_uid()` (returns ``'0xAABBCCDD'`` string) or
+            `get_uid_int()` (returns unsigned integer) instead.
+
+        Args:
+            endian: ``'big'`` or ``'little'``.  Selects byte order for the
+                4-byte UID from the ANTI_COLLISION response.
+            as_string: If ``True`` returns ``'0xAABBCCDD'`` hex string;
+                otherwise an unsigned integer.
+
+        Returns:
+            Card UID as hex string or integer.
         """
         warnings.warn(
             'get_sn() is deprecated and will be removed in a future version. '
@@ -201,11 +222,14 @@ class MifareReader:
         zero-padded upper-case hex string (e.g. ``'0xEDCEF8C3'``).
 
         Internally runs REQUEST → ANTI_COLLISION.  Does *not* call SELECT;
-        use :meth:`scan_tag` or :meth:`select_card` when you need the card
+        use `scan_tag()` or `select_card()` when you need the card
         to be in an active/authenticated state.
 
-        @return: UID string like ``'0xAABBCCDD'``.
-        @raises GNetPlusError: If no card is present or the reader returns NAK.
+        Returns:
+            UID string like ``'0xAABBCCDD'``.
+
+        Raises:
+            GNetPlusError: If no card is present or the reader returns NAK.
         """
         uid_bytes = self._detect_card_uid()
         uid = struct.unpack('<L', uid_bytes)[0]
@@ -216,8 +240,11 @@ class MifareReader:
         Return the 4-byte UID of the card currently in the RF field as an
         unsigned 32-bit integer (little-endian byte order).
 
-        @return: Unsigned 32-bit UID integer.
-        @raises GNetPlusError: If no card is present or the reader returns NAK.
+        Returns:
+            Unsigned 32-bit UID integer.
+
+        Raises:
+            GNetPlusError: If no card is present or the reader returns NAK.
         """
         uid_bytes = self._detect_card_uid()
         return struct.unpack('<L', uid_bytes)[0]
@@ -227,9 +254,12 @@ class MifareReader:
         Enumerate *all* cards in field (REQUEST_ALL + ANTI_COLLISION), including
         cards in HALT state.  Useful for multi-card scanning.
 
-        @param endian: ``'big'`` or ``'little'`` byte order for the 4-byte UID.
-        @param as_string: If ``True`` returns hex string; otherwise integer.
-        @return: Card UID as hex string or integer.
+        Args:
+            endian: ``'big'`` or ``'little'`` byte order for the 4-byte UID.
+            as_string: If ``True`` returns hex string; otherwise integer.
+
+        Returns:
+            Card UID as hex string or integer.
         """
         uid_bytes = self._detect_card_uid_all()
         uid = struct.unpack('>L' if endian == 'big' else '<L', uid_bytes)[0]
@@ -246,8 +276,11 @@ class MifareReader:
         Retrieve the secondary serial number (7-byte UID for MIFARE UltraLight /
         DESFire and other ISO 14443-3 compliant cards).
 
-        @param as_string: If ``True`` returns hex string; otherwise raw bytes.
-        @return: Secondary serial number as hex string or bytes.
+        Args:
+            as_string: If ``True`` returns hex string; otherwise raw bytes.
+
+        Returns:
+            Secondary serial number as hex string or bytes.
         """
         self.sendmsg(QueryMessage.GET_SECOND_SN)
         response = self.readmsg()
@@ -258,13 +291,16 @@ class MifareReader:
         Run REQUEST → ANTI_COLLISION → SELECT_CARD to bring a card into
         the active state ready for authentication and block operations.
 
-        Called automatically by :meth:`authenticate_sector` before every
+        Called automatically by `authenticate_sector()` before every
         key-load / authenticate sequence, so you normally do not need to
         call this directly.  It is still public for advanced multi-card
         workflows (see example 08).
 
-        @return: ACK payload bytes from the SELECT_CARD response.
-        @raises GNetPlusError: If any step returns a NAK.
+        Returns:
+            ACK payload bytes from the SELECT_CARD response.
+
+        Raises:
+            GNetPlusError: If any step returns a NAK.
         """
         uid_bytes = self._detect_card_uid()
         self.sendmsg(QueryMessage.SELECT_CARD, uid_bytes)
@@ -278,8 +314,11 @@ class MifareReader:
         Use this to verify the serial connection is alive without interacting
         with any card.  The reader responds even when no card is present.
 
-        @return: ``True`` if the reader acknowledged the POLLING command.
-        @raises GNetPlusError: If the reader explicitly NAKs (unusual).
+        Returns:
+            ``True`` if the reader acknowledged the POLLING command.
+
+        Raises:
+            GNetPlusError: If the reader explicitly NAKs (unusual).
         """
         try:
             self.sendmsg(QueryMessage.POLLING)
@@ -293,10 +332,11 @@ class MifareReader:
         Non-blocking check: send a single REQUEST and return whether any
         card responded.
 
-        Does **not** select or authenticate the card — use :meth:`scan_tag`
-        or :meth:`select_card` for that.
+        Does **not** select or authenticate the card — use `scan_tag()`
+        or `select_card()` for that.
 
-        @return: ``True`` if a card is in the RF field, ``False`` otherwise.
+        Returns:
+            ``True`` if a card is in the RF field, ``False`` otherwise.
         """
         try:
             self.sendmsg(QueryMessage.REQUEST)
@@ -309,19 +349,24 @@ class MifareReader:
         """
         One-shot card detection: REQUEST → ANTI_COLLISION → SELECT_CARD.
 
-        Returns a :class:`~mifarepy.protocol.CardInfo` dataclass with the
+        Returns a `CardInfo` dataclass with the
         UID available in multiple representations.  The card is left in
         the *active* state so you can immediately call
-        :meth:`authenticate_sector` / :meth:`read_block` etc.
+        `authenticate_sector()` / `read_block()` etc.
 
-        Example::
+        Usage example:
 
-            card = reader.scan_tag()
-            print(card)            # '0xEDCEF8C3'
-            print(card.uid_int)    # 3989956803
+        ```python
+        card = reader.scan_tag()
+        print(card)            # '0xEDCEF8C3'
+        print(card.uid_int)    # 3989956803
+        ```
 
-        @return: :class:`CardInfo` with ``uid``, ``uid_int``, and ``uid_bytes``.
-        @raises GNetPlusError: If no card is present or any step fails.
+        Returns:
+            `CardInfo` with ``uid``, ``uid_int``, and ``uid_bytes``.
+
+        Raises:
+            GNetPlusError: If no card is present or any step fails.
         """
         uid_bytes = self._detect_card_uid()
         self.sendmsg(QueryMessage.SELECT_CARD, uid_bytes)
@@ -333,13 +378,18 @@ class MifareReader:
             uid_bytes=uid_bytes,
         )
 
-    def wait_for_card(self, timeout: int = 10) -> Optional[str]:
+    def wait_for_card(self, timeout: float = 10.0) -> str:
         """
         Check if a card is already present; if not, wait for a card-insert event.
 
-        @param timeout: Maximum time to wait in seconds (default: 10).
-        @return: Card serial number string.
-        @raises TimeoutError: If no card is detected within the timeout.
+        Args:
+            timeout: Maximum time to wait in seconds (default: 10).
+
+        Returns:
+            Card serial number string.
+
+        Raises:
+            TimeoutError: If no card is detected within the timeout.
         """
         self.set_auto_mode()
 
@@ -370,21 +420,28 @@ class MifareReader:
         Suitable for use inside ``asyncio``-based applications (FastAPI,
         Django async views, automation scripts using ``asyncio.run``).
 
-        Example::
+        Usage example:
 
-            import asyncio
-            from mifarepy import MifareReader
+        ```python
+        import asyncio
+        from mifarepy import MifareReader
 
-            async def main():
-                with MifareReader('/dev/ttyUSB0') as reader:
-                    uid = await reader.wait_for_card_async(timeout=15)
-                    print('Card:', uid)
+        async def main():
+            with MifareReader('/dev/ttyUSB0') as reader:
+                uid = await reader.wait_for_card_async(timeout=15)
+                print('Card:', uid)
 
-            asyncio.run(main())
+        asyncio.run(main())
+        ```
 
-        @param timeout: Maximum seconds to wait (default: 10).
-        @return: Card UID as hex string.
-        @raises TimeoutError: If no card is detected within the timeout.
+        Args:
+            timeout: Maximum seconds to wait (default: 10).
+
+        Returns:
+            Card UID as hex string.
+
+        Raises:
+            TimeoutError: If no card is detected within the timeout.
         """
         loop = asyncio.get_event_loop()
         return await asyncio.wait_for(
@@ -400,7 +457,8 @@ class MifareReader:
         """
         Get product version string.
 
-        @return: Firmware/hardware version string from the connected reader.
+        Returns:
+            Firmware/hardware version string from the connected reader.
         """
         self.sendmsg(QueryMessage.GET_VERSION)
         response = self.readmsg().data
@@ -410,9 +468,14 @@ class MifareReader:
         """
         Toggle auto mode — whether the device emits EVN events when a card enters field.
 
-        @param enabled: True to enable, False to disable.
-        @return: Confirmed mode byte from the device.
-        @raises GNetPlusError: If the device reports failure to set the mode.
+        Args:
+            enabled: True to enable, False to disable.
+
+        Returns:
+            Confirmed mode byte from the device.
+
+        Raises:
+            GNetPlusError: If the device reports failure to set the mode.
         """
         mode = b'\x01' if enabled else b'\x00'
         self.sendmsg(QueryMessage.AUTO_MODE, mode)
@@ -429,7 +492,8 @@ class MifareReader:
         The card will not respond to subsequent REQUEST commands (only REQUEST_ALL).
         Call this after finishing operations on a card in multi-card scenarios.
 
-        @raises GNetPlusError: If the reader returns a NAK.
+        Raises:
+            GNetPlusError: If the reader returns a NAK.
         """
         self.sendmsg(QueryMessage.HALT)
         self.readmsg()
@@ -441,8 +505,11 @@ class MifareReader:
         Turning the RF field off and back on can reset cards that are in an
         inconsistent state without physically removing them.
 
-        @param on: True to power on the RF field, False to power it off.
-        @raises GNetPlusError: If the reader returns a NAK.
+        Args:
+            on: True to power on the RF field, False to power it off.
+
+        Raises:
+            GNetPlusError: If the reader returns a NAK.
         """
         self.sendmsg(QueryMessage.RF_POWER_ONOFF, b'\x01' if on else b'\x00')
         self.readmsg()
@@ -451,17 +518,27 @@ class MifareReader:
     # Authentication
     # ------------------------------------------------------------------
 
-    def authenticate_sector(self, sector: int, key: bytes, key_type: str = 'A', timeout: float = 1.0, flush: bool = True) -> None:
+    def authenticate_sector(
+        self,
+        sector: int,
+        key: bytes,
+        key_type: str = 'A',
+        timeout: float = 1.0,
+        flush: bool = True,
+    ) -> None:
         """
         Load a key into the reader and authenticate the specified MIFARE Classic sector.
 
-        @param sector: Sector number to authenticate (0-15 for 1K; 0-39 for 4K).
-        @param key: 6-byte authentication key.
-        @param key_type: 'A' for Key A (0x60) or 'B' for Key B (0x61).
-        @param timeout: Timeout in seconds for reader responses.
-        @param flush: Whether to flush the input buffer before reading responses.
-        @raises ValueError: If key_type is invalid or key length is not 6 bytes.
-        @raises GNetPlusError: If the reader returns NAK during key load or authentication.
+        Args:
+            sector: Sector number to authenticate (0-15 for 1K; 0-39 for 4K).
+            key: 6-byte authentication key.
+            key_type: 'A' for Key A (0x60) or 'B' for Key B (0x61).
+            timeout: Timeout in seconds for reader responses.
+            flush: Whether to flush the input buffer before reading responses.
+
+        Raises:
+            ValueError: If key_type is invalid or key length is not 6 bytes.
+            GNetPlusError: If the reader returns NAK during key load or authentication.
         """
         if key_type not in ('A', 'B'):
             raise ValueError("key_type must be 'A' or 'B'")
@@ -470,7 +547,7 @@ class MifareReader:
 
         # Re-select the card so this call is safe after any write operation.
         # MIFARE cards fall back to IDLE after writes; without SELECT they will
-        # refuse the subsequent AUTHENTICATE with "Invalid address" / "Card not present".
+        # refuse the subsequent AUTHENTICATE with NAK 0x04 (authenticate error).
         self.select_card()
 
         auth_code = 0x60 if key_type == 'A' else 0x61
@@ -513,21 +590,24 @@ class MifareReader:
     ) -> None:
         """Authenticate a sector using a key that is **already loaded** in the reader.
 
-        Skips the SAVE_KEY step (opcode 0x2C) and jumps straight to
+        Skips the SAVE_KEY step (opcode 0x2B) and jumps straight to
         AUTHENTICATE_KEY (opcode 0x2E).  This is faster when the same key
-        has already been loaded by a previous :meth:`authenticate_sector` call
+        has already been loaded by a previous `authenticate_sector()` call
         in the same session.
 
-        .. warning::
+        Warning:
             The reader only stores **one** key internally.  If any other sector
             was authenticated (or the reader was reset) since the last
-            SAVE_KEY, call :meth:`authenticate_sector` instead.
+            SAVE_KEY, call `authenticate_sector()` instead.
 
-        @param sector:   Sector to authenticate (0-15 for 1K; 0-39 for 4K).
-        @param key_type: ``'A'`` for Key A (0x60) or ``'B'`` for Key B (0x61).
-        @param timeout:  Timeout in seconds for the reader response.
-        @raises ValueError:      If ``key_type`` is invalid.
-        @raises GNetPlusError:   If the reader returns NAK.
+        Args:
+            sector: Sector to authenticate (0-15 for 1K; 0-39 for 4K).
+            key_type: ``'A'`` for Key A (0x60) or ``'B'`` for Key B (0x61).
+            timeout: Timeout in seconds for the reader response.
+
+        Raises:
+            ValueError: If ``key_type`` is invalid.
+            GNetPlusError: If the reader returns NAK.
         """
         if key_type not in ('A', 'B'):
             raise ValueError("key_type must be 'A' or 'B'")
@@ -555,10 +635,15 @@ class MifareReader:
         """
         Read a single 16-byte block from the currently authenticated sector.
 
-        @param block: Block index relative to the authenticated sector (0-3).
-        @param raw: If True returns bytes; if False returns hex string.
-        @return: Block data as bytes (raw=True) or hex string (raw=False).
-        @raises GNetPlusError: If the read fails.
+        Args:
+            block: Block index relative to the authenticated sector (0-3).
+            raw: If True returns bytes; if False returns hex string.
+
+        Returns:
+            Block data as bytes (raw=True) or hex string (raw=False).
+
+        Raises:
+            GNetPlusError: If the read fails.
         """
         self.sendmsg(QueryMessage.READ_BLOCK, bytes([block]))
         response = self.readmsg()
@@ -568,11 +653,16 @@ class MifareReader:
         """
         Write a 16-byte block to the currently authenticated sector.
 
-        @param block: Block index relative to the authenticated sector (0-3).
-        @param data: Data to write -- exactly 16 bytes or a 32-character hex string.
-        @return: Reader's echoed data in hex format.
-        @raises ValueError: If data is not exactly 16 bytes.
-        @raises GNetPlusError: If the write fails.
+        Args:
+            block: Block index relative to the authenticated sector (0-3).
+            data: Data to write -- exactly 16 bytes or a 32-character hex string.
+
+        Returns:
+            Reader's echoed data in hex format.
+
+        Raises:
+            ValueError: If data is not exactly 16 bytes.
+            GNetPlusError: If the write fails.
         """
         if isinstance(data, str):
             data = bytes.fromhex(data)
@@ -589,9 +679,14 @@ class MifareReader:
         """
         Read a signed 32-bit value from a MIFARE value block.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @return: Signed 32-bit integer stored in the value block.
-        @raises GNetPlusError: If the read fails.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+
+        Returns:
+            Signed 32-bit integer stored in the value block.
+
+        Raises:
+            GNetPlusError: If the read fails.
         """
         self.sendmsg(QueryMessage.READ_VALUE, bytes([block]))
         response = self.readmsg()
@@ -605,10 +700,13 @@ class MifareReader:
         updates value blocks and is universally supported across all
         GNetPlus firmware versions.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @param value: Signed 32-bit integer to store.
-        @raises ValueError: If value is outside signed 32-bit range.
-        @raises GNetPlusError: If the write fails.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+            value: Signed 32-bit integer to store.
+
+        Raises:
+            ValueError: If value is outside signed 32-bit range.
+            GNetPlusError: If the write fails.
         """
         if not (-2**31 <= value <= 2**31 - 1):
             raise ValueError('value must be a signed 32-bit integer')
@@ -621,10 +719,13 @@ class MifareReader:
 
         Must authenticate the sector before calling.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @param initial_value: Signed 32-bit starting value (default: 0).
-        @raises ValueError: If initial_value is outside signed 32-bit range.
-        @raises GNetPlusError: If the operation fails.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+            initial_value: Signed 32-bit starting value (default: 0).
+
+        Raises:
+            ValueError: If initial_value is outside signed 32-bit range.
+            GNetPlusError: If the operation fails.
         """
         if not (-2**31 <= initial_value <= 2**31 - 1):
             raise ValueError('initial_value must be a signed 32-bit integer')
@@ -639,10 +740,13 @@ class MifareReader:
         Implemented as read → add → write using READ_VALUE / SET_VALUE because
         those are universally supported across all GNetPlus firmware versions.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @param delta: Positive integer amount to add.
-        @raises ValueError: If delta ≤ 0 or if the result overflows int32.
-        @raises GNetPlusError: If the reader returns a NAK.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+            delta: Positive integer amount to add.
+
+        Raises:
+            ValueError: If delta ≤ 0 or if the result overflows int32.
+            GNetPlusError: If the reader returns a NAK.
         """
         if delta <= 0 or delta > 2**31 - 1:
             raise ValueError('delta must be a positive 32-bit integer')
@@ -660,10 +764,13 @@ class MifareReader:
 
         Implemented as read → subtract → write using READ_VALUE / SET_VALUE.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @param delta: Positive integer amount to subtract.
-        @raises ValueError: If delta ≤ 0 or if the result underflows int32.
-        @raises GNetPlusError: If the reader returns a NAK.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+            delta: Positive integer amount to subtract.
+
+        Raises:
+            ValueError: If delta ≤ 0 or if the result underflows int32.
+            GNetPlusError: If the reader returns a NAK.
         """
         if delta <= 0 or delta > 2**31 - 1:
             raise ValueError('delta must be a positive 32-bit integer')
@@ -682,9 +789,12 @@ class MifareReader:
         Both blocks must reside in the currently authenticated sector and must
         already be formatted as value blocks.
 
-        @param source_block: Block to read the value from (0-2).
-        @param dest_block: Block to write the value to (0-2).
-        @raises GNetPlusError: If either the read or write fails.
+        Args:
+            source_block: Block to read the value from (0-2).
+            dest_block: Block to write the value to (0-2).
+
+        Raises:
+            GNetPlusError: If either the read or write fails.
         """
         value = self.read_value(source_block)
         self.write_value(dest_block, value)
@@ -698,8 +808,11 @@ class MifareReader:
         This method reads the block and writes it back to guarantee the value
         block format remains intact after any partial low-level failure.
 
-        @param block: Block index relative to the authenticated sector (0-2).
-        @raises GNetPlusError: If the reader returns a NAK.
+        Args:
+            block: Block index relative to the authenticated sector (0-2).
+
+        Raises:
+            GNetPlusError: If the reader returns a NAK.
         """
         value = self.read_value(block)
         self.write_value(block, value)
@@ -720,12 +833,17 @@ class MifareReader:
 
         Authenticate the sector with ``authenticate_sector`` before calling this.
 
-        @param sector: Sector number -- used for logging only; does not affect
-                       which blocks are read (authenticate separately).
-        @param raw: If True returns bytes; otherwise hex strings.
-        @param combine: If True concatenates all three blocks into a single value.
-        @return: Dict mapping relative block index (0-2) to data, or combined value.
-        @raises GNetPlusError: If any block read fails.
+        Args:
+            sector: Sector number -- used for logging only; does not affect
+                which blocks are read (authenticate separately).
+            raw: If True returns bytes; otherwise hex strings.
+            combine: If True concatenates all three blocks into a single value.
+
+        Returns:
+            Dict mapping relative block index (0-2) to data, or combined value.
+
+        Raises:
+            GNetPlusError: If any block read fails.
         """
         results: dict[int, Union[str, bytes]] = {}
 
@@ -746,8 +864,9 @@ class MifareReader:
           - **48 bytes** / **96-char hex** -- split into three 16-byte chunks for blocks 0-2.
           - **dict** mapping block indices (0-2) to 16-byte blobs or hex strings.
 
-        @raises ValueError: If data is an invalid size or dict contains bad block keys.
-        @raises GNetPlusError: If any write fails.
+        Raises:
+            ValueError: If data is an invalid size or dict contains bad block keys.
+            GNetPlusError: If any write fails.
         """
         if isinstance(data, str):
             data = bytes.fromhex(data)
@@ -784,13 +903,16 @@ class MifareReader:
         """Write the same 16 bytes to blocks 0, 1, *and* 2 of the authenticated sector.
 
         This is an explicit, intent-revealing alias for the 16-byte dispatch
-        path of :meth:`write_sector`.  Use it when you deliberately want
+        path of `write_sector()`.  Use it when you deliberately want
         every data block in the sector to hold identical content (e.g. bulk
         wipe / factory-reset workflows).
 
-        @param data: Exactly 16 bytes or a 32-character hex string.
-        @raises ValueError: If *data* is not exactly 16 bytes.
-        @raises GNetPlusError: If any block write fails.
+        Args:
+            data: Exactly 16 bytes or a 32-character hex string.
+
+        Raises:
+            ValueError: If *data* is not exactly 16 bytes.
+            GNetPlusError: If any block write fails.
         """
         if isinstance(data, str):
             data = bytes.fromhex(data)
@@ -820,31 +942,36 @@ class MifareReader:
         Authentication can be supplied two ways (mutually exclusive; ``auth``
         takes precedence when both are given):
 
-        **New style** — ``auth`` dict of :class:`~mifarepy.SectorAuth`:
+        **New style** — ``auth`` dict of `SectorAuth`:
 
-        .. code-block:: python
-
-            results = reader.read_blocks(
-                {1: [0, 1], 2: [0]},
-                auth={
-                    1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
-                    2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
-                },
-            )
+        ```python
+        results = reader.read_blocks(
+            {1: [0, 1], 2: [0]},
+            auth={
+                1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
+                2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
+            },
+        )
+        ```
 
         **Legacy style** — ``keys`` + ``key_types`` + ``timeout`` + ``flush``
         (still fully supported).
 
-        @param mapping:   ``{sector: [block, ...]}`` blocks to read per sector.
-        @param raw:       ``True`` → bytes; ``False`` → hex strings.
-        @param combine:   ``True`` → concatenate all results into one value.
-        @param keys:      Global 6-byte key or ``{sector: key}`` per-sector.
-        @param key_types: ``'A'``/``'B'`` globally or per-sector dict.
-        @param timeout:   Auth timeout globally or per-sector dict.
-        @param flush:     Buffer-flush flag globally or per-sector dict.
-        @param auth:      ``{sector: SectorAuth}`` — new-style per-sector auth.
-        @return:          ``{sector: {block: data}}`` or combined bytes/hex string.
-        @raises GNetPlusError: If authentication or any block read fails.
+        Args:
+            mapping: ``{sector: [block, ...]}`` blocks to read per sector.
+            raw: ``True`` → bytes; ``False`` → hex strings.
+            combine: ``True`` → concatenate all results into one value.
+            keys: Global 6-byte key or ``{sector: key}`` per-sector.
+            key_types: ``'A'``/``'B'`` globally or per-sector dict.
+            timeout: Auth timeout globally or per-sector dict.
+            flush: Buffer-flush flag globally or per-sector dict.
+            auth: ``{sector: SectorAuth}`` — new-style per-sector auth.
+
+        Returns:
+            ``{sector: {block: data}}`` or combined bytes/hex string.
+
+        Raises:
+            GNetPlusError: If authentication or any block read fails.
         """
         results: dict[int, dict[int, Union[str, bytes]]] = {}
 
@@ -890,29 +1017,32 @@ class MifareReader:
         Authentication can be supplied two ways (mutually exclusive; ``auth``
         takes precedence when both are given):
 
-        **New style** — ``auth`` dict of :class:`~mifarepy.SectorAuth`:
+        **New style** — ``auth`` dict of `SectorAuth`:
 
-        .. code-block:: python
-
-            reader.write_blocks(
-                {1: b'\x00' * 48, 2: {0: b'\xAA' * 16}},
-                auth={
-                    1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
-                    2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
-                },
-            )
+        ```python
+        reader.write_blocks(
+            {1: b'\x00' * 48, 2: {0: b'\xAA' * 16}},
+            auth={
+                1: SectorAuth(key=bytes.fromhex('FFFFFFFFFFFF')),
+                2: SectorAuth(key=bytes.fromhex('A0A1A2A3A4A5'), key_type='B'),
+            },
+        )
+        ```
 
         **Legacy style** — ``keys`` + ``key_types`` + ``timeout`` + ``flush``
         (still fully supported).
 
-        @param mapping:   ``{sector: blob_or_dict}`` data to write per sector.
-        @param keys:      Global 6-byte key or ``{sector: key}`` per-sector.
-        @param key_types: ``'A'``/``'B'`` globally or per-sector dict.
-        @param timeout:   Auth timeout globally or per-sector dict.
-        @param flush:     Buffer-flush flag globally or per-sector dict.
-        @param auth:      ``{sector: SectorAuth}`` — new-style per-sector auth.
-        @raises ValueError:    If any block data is not exactly 16 bytes.
-        @raises GNetPlusError: If authentication or any block write fails.
+        Args:
+            mapping: ``{sector: blob_or_dict}`` data to write per sector.
+            keys: Global 6-byte key or ``{sector: key}`` per-sector.
+            key_types: ``'A'``/``'B'`` globally or per-sector dict.
+            timeout: Auth timeout globally or per-sector dict.
+            flush: Buffer-flush flag globally or per-sector dict.
+            auth: ``{sector: SectorAuth}`` — new-style per-sector auth.
+
+        Raises:
+            ValueError: If any block data is not exactly 16 bytes.
+            GNetPlusError: If authentication or any block write fails.
         """
         for sector, spec in mapping.items():
             if auth is not None and sector in auth:

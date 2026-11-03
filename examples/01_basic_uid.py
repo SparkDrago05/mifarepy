@@ -8,7 +8,8 @@ Usage:
 """
 
 import sys
-from mifarepy import MifareReader, CardInfo
+
+from mifarepy import CardInfo, MifareReader
 
 PORT = sys.argv[1] if len(sys.argv) > 1 else '/dev/ttyUSB0'
 

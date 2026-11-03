@@ -10,6 +10,7 @@ Usage:
 """
 
 import sys
+
 from mifarepy import MifareReader
 from mifarepy.protocol import GNetPlusError
 

@@ -21,8 +21,8 @@ Usage:
 """
 
 import sys
+
 from mifarepy import MifareReader
-from mifarepy.protocol import GNetPlusError
 
 PORT        = sys.argv[1] if len(sys.argv) > 1 else '/dev/ttyUSB0'
 SECTOR      = 4       # sector that will hold the value block
