@@ -1,0 +1,29 @@
+# mifarepy
+
+> Typed Python library (Python 3.9+, LGPL-3.0-or-later, depends only on pyserial) for MIFARE Classic 1K/4K cards on GIGA-TMS / PROMAG readers (PCR310U, MF5, MF10) that speak the GNetPlus serial protocol at 19200 baud 8N1.
+
+Install with `pip install mifarepy`. Import everything from the package root: `from mifarepy import MifareReader, SectorAuth, CardInfo, GNetPlusError, InvalidMessage, layout`.
+
+Key facts for correct code:
+
+- Use `with MifareReader('/dev/ttyUSB0') as reader:` (Windows: `'COM3'`). The context manager closes the port and turns auto mode off.
+- Card detection: `get_uid()` returns `'0xAABBCCDD'`; `get_uid_int()`; `scan_tag()` returns `CardInfo`; `is_card_present()`; `wait_for_card(timeout)`; `await wait_for_card_async(timeout)`. `get_sn()` is deprecated.
+- Authenticate before every read/write: `reader.authenticate_sector(sector, key: bytes(6), key_type='A'|'B')`. The factory default key is `bytes.fromhex('FFFFFFFFFFFF')`.
+- Block numbers for `read_block()` / `write_block()` are RELATIVE to the authenticated sector (0-3, or 0-15 for 4K sectors 32-39). Use `mifarepy.layout` to convert to/from absolute block numbers.
+- `read_sector()` / `write_sector()` cover data blocks only and never write the sector trailer. `read_blocks()` / `write_blocks()` work across sectors with `auth={sector: SectorAuth(key=..., key_type='A')}`.
+- Value blocks: `create_value_block()`, `read_value()`, `write_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`. Arithmetic uses native reader commands, verified by reading back, with automatic fallback (`MifareReader(..., value_ops='auto'|'native'|'software')`).
+- Errors: reader NAKs raise `GNetPlusError` with `.nak_code` (int) and `.code_description` (e.g. 0x04 "Authentication error", 0x1F "No tag in field"); malformed frames raise `InvalidMessage`.
+- Raw commands: `reader.sendmsg(QueryMessage.<NAME>, payload)` then `reader.readmsg()`.
+
+## Docs
+
+- [Usage guide](https://sparkdrago05.github.io/mifarepy/latest/usage/): every feature with examples
+- [API reference](https://sparkdrago05.github.io/mifarepy/latest/api/): generated from docstrings
+- [MIFARE Classic primer](https://sparkdrago05.github.io/mifarepy/latest/mifare-classic/): layout, keys, access bits, value blocks
+- [GNetPlus protocol reference](https://sparkdrago05.github.io/mifarepy/latest/protocol/): frames, CRC, command and error-code tables
+- [Hardware & setup](https://sparkdrago05.github.io/mifarepy/latest/hardware/): ports, permissions, troubleshooting
+
+## Optional
+
+- [Examples](https://github.com/SparkDrago05/mifarepy/tree/main/examples): nine runnable scripts
+- [Changelog](https://github.com/SparkDrago05/mifarepy/blob/main/CHANGELOG.md)

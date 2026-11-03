@@ -87,3 +87,7 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["mifarepy"]
 branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
