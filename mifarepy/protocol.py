@@ -221,7 +221,7 @@ class Message:
     def __repr__(self) -> str:
         return f'Message(address={hex(self.address)}, function={hex(self.function)}, data={self.data!r})'
 
-    def sendto(self, serial_port):
+    def sendto(self, serial_port: serial.Serial) -> None:
         """
         Sends this message to the provided serial port.
 
@@ -231,7 +231,7 @@ class Message:
         serial_port.write(bytes(self))
 
     @classmethod
-    def readfrom(cls, serial_port: serial.Serial):
+    def readfrom(cls, serial_port: serial.Serial) -> 'Message':
         """
         Reads a message from the serial port and constructs a Message instance.
 

@@ -1,85 +1,75 @@
-# 📥 Installation Guide
+# Installation
 
-This guide covers different ways to install **mifarepy** and its prerequisites.
+## Requirements
 
----
+- **Python 3.9 or newer** (tested on 3.9 – 3.14)
+- **pyserial**, installed automatically
+- Permission to open the reader's serial port. See [Hardware & setup](hardware.md).
 
-## ⚙️ Prerequisites
+## Install from PyPI
 
-- **Python version:** 3.7 or newer 🐍  
-- **pyserial:** Installed automatically via PyPI, but ensure no conflicts.  
-- **Permissions (Linux):** Add your user to the `dialout` group to access serial ports:
-  ```bash
-  sudo usermod -aG dialout $USER
-  ```
-  Then log out and back in, or restart.
-- **Windows:** Identify your COM port (e.g., `COM3`) and install the driver if needed.
+=== "pip"
 
----
+    ```bash
+    pip install mifarepy
+    ```
 
-## 📦 Install from PyPI
+=== "uv"
 
-The simplest way is via pip:
+    ```bash
+    uv add mifarepy
+    ```
 
-```bash
-pip install mifarepy
-```
+=== "Poetry"
 
-This installs the latest stable release and its dependencies (including `pyserial`).
+    ```bash
+    poetry add mifarepy
+    ```
 
----
+=== "Raspberry Pi"
 
-## 🔧 Editable / Development Install
+    Wheels are also published on [piwheels](https://www.piwheels.org/project/mifarepy/),
+    so `pip` on Raspberry Pi OS installs without building anything:
 
-If you plan to develop or contribute to **mifarepy**, install in editable mode:
+    ```bash
+    python3 -m venv ~/venvs/rfid && source ~/venvs/rfid/bin/activate
+    pip install mifarepy
+    ```
 
-```bash
-git clone https://github.com/SparkDrago05/mifarepy.git
-cd mifarepy
-pip install -e .
-```
-
-This links the repository into your environment so changes are picked up immediately.
-
----
-
-## 📁 Manual / Source Install
-
-For environments without PyPI access, install from source:
-
-```bash
-git clone https://github.com/SparkDrago05/mifarepy.git
-cd mifarepy
-# Create a virtual environment (optional but recommended)
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-> **Note:** Ensure `requirements.txt` is up to date. Alternatively, you can use `pip install -e .` as above.
-
----
-
-## 🐍 Using pyproject.toml (PEP 517/518)
-
-If you use modern tooling:
-
-```bash
-pip install build
-python -m build  # will generate wheel and sdist in dist/
-pip install dist/mifarepy-*.whl
-```
-
----
-
-## 🔍 Verify Installation
+## Verify the install
 
 ```bash
 python -c "import mifarepy; print(mifarepy.__version__)"
 ```
 
-You should see the installed version number, confirming a successful install.
+Then plug in the reader and check that it answers:
 
----
+```python
+from mifarepy import MifareReader
 
-For further configuration and advanced usage, see the [API Reference](api.md) and [Usage Guide](usage.md). 🎉
+with MifareReader('/dev/ttyUSB0') as reader:   # Windows: 'COM3'
+    print(reader.ping(), reader.get_version())
+```
+
+## Install from source
+
+```bash
+git clone https://github.com/SparkDrago05/mifarepy.git
+cd mifarepy
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+The `dev` extra adds pytest, coverage, ruff and mypy. To build the
+documentation locally, install the `docs` extra and run MkDocs:
+
+```bash
+pip install -e ".[docs]"
+mkdocs serve
+```
+
+## Next steps
+
+- [Hardware & setup](hardware.md): find the serial port and fix permissions
+- [Usage guide](usage.md): every feature with examples
+- [Examples](examples.md): runnable scripts

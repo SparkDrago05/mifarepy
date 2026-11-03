@@ -1,50 +1,103 @@
 site_name: mifarepy
-site_description: "Documentation for the mifarepy project."
+site_description: "Typed Python library for MIFARE® readers that speak the GNetPlus® protocol (PROMAG PCR310U, MF5, MF10)."
 site_author: "Spark Drago"
 site_url: "https://SparkDrago05.github.io/mifarepy/"
 repo_url: "https://github.com/SparkDrago05/mifarepy/"
-repo_name: "mifarepy"
+repo_name: "SparkDrago05/mifarepy"
+edit_uri: "edit/main/docs/"
+copyright: >
+  Copyright &copy; 2025-2026 Spark Drago &middot; LGPL-3.0-or-later &middot;
+  <a href="#__consent">Change cookie settings</a>
+
 theme:
   name: material
   custom_dir: overrides
-  highlightjs: true
-  highlight_theme: github  # for light mode
-  highlight_theme_dark: dracula  # for dark mode
+  icon:
+    logo: material/contactless-payment
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
   palette:
-    # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
         name: Switch to light mode
-
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to system preference
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    - content.action.edit
+
 extra_css:
   - style.css
+
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Usage: usage.md
-  - Examples: examples.md
-  - API Reference: api.md
-  - Contributing: contributing.md
+  - Getting started:
+      - Installation: installation.md
+      - Hardware & setup: hardware.md
+  - Guides:
+      - Usage guide: usage.md
+      - MIFARE Classic primer: mifare-classic.md
+      - Examples: examples.md
+  - Reference:
+      - API reference: api.md
+      - GNetPlus protocol: protocol.md
+  - Project:
+      - Contributing: contributing.md
+      - Code of conduct: CODE_OF_CONDUCT.md
+      - Credits & license: credits.md
 
 plugins:
-  - git-authors
   - search
+  - git-authors
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            filters: ["!^_"]
   - mike:
       alias_type: symlink
       redirect_template: null
@@ -55,12 +108,45 @@ plugins:
       javascript_dir: js
 
 markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.superfences
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/SparkDrago05/mifarepy
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/mifarepy/
   analytics:
     provider: google
     property: G-PZYQH7R8EV
@@ -78,6 +164,13 @@ extra:
           note: >-
             Thanks for your feedback! Help us improve this page by
             opening a <a href="https://github.com/SparkDrago05/mifarepy/issues/new?template=feedback.md" target="_blank" rel="noopener">feedback issue</a>.
-
-  version:
-    provider: mike
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to measure how the documentation is used, so we can
+      see which pages help and which need work. Analytics only run if you
+      accept. You can change your choice at any time from the link in the footer.
+    actions:
+      - accept
+      - reject
+      - manage

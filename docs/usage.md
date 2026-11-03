@@ -87,6 +87,9 @@ alive = reader.ping()   # True if reader responds to POLLING
 
 ## MIFARE Classic memory layout
 
+!!! tip
+    New to sectors, keys and access bits? Read the [MIFARE Classic primer](mifare-classic.md) first.
+
 MIFARE Classic 1K cards have **16 sectors × 4 blocks × 16 bytes** = 1024 bytes.
 
 ```
@@ -260,9 +263,9 @@ from mifarepy import GNetPlusError, InvalidMessage
 try:
     reader.authenticate_sector(0, KEY_A)
 except GNetPlusError as e:
-    print(e.code_description)   # 'Authentication failed'
-    print(e.nak_code)           # 0x05
-    print(repr(e.raw))          # b'\x05'
+    print(e.code_description)   # 'Authentication error'
+    print(hex(e.nak_code))      # 0x4
+    print(repr(e.raw))          # b'\x04'
 
 try:
     from mifarepy.protocol import Message
@@ -271,6 +274,12 @@ except InvalidMessage as e:
     print(e)                    # human error description
     print(e.raw_bytes.hex())    # partial bytes received before failure
 ```
+
+---
+
+See the [error code table](protocol.md#error-codes) for every NAK code the
+reader can return, and [troubleshooting](hardware.md#troubleshooting) for
+common fixes.
 
 ---
 

@@ -1,127 +1,164 @@
 # Examples
 
-All example scripts live in the `examples/` directory.  They connect to a real reader
-on `/dev/ttyUSB0` and use the factory-default key `FFFFFFFFFFFF`.
-
-Before running any example, ensure the reader is plugged in and you have permission
-to access the serial port:
-
-```bash
-# Linux: add yourself to the dialout group
-sudo usermod -aG dialout $USER   # re-login after this
-```
-
----
-
-## 01 — Card UID
-
-**`examples/01_get_uid.py`**
-
-Demonstrates `get_uid()`, `get_uid_int()`, and `scan_tag()`.
+Nine runnable scripts live in the
+[`examples/`](https://github.com/SparkDrago05/mifarepy/tree/main/examples)
+folder. Each one takes the serial port as an optional argument (default
+`/dev/ttyUSB0`) and uses the factory-default key `FFFFFFFFFFFF`:
 
 ```bash
-python examples/01_get_uid.py
+python examples/01_basic_uid.py /dev/ttyUSB0     # Windows: COM3
 ```
 
----
+!!! warning "Use a spare card"
+    Examples 04–07 and 09 **write** to the card. They never touch sector
+    trailers, but they will overwrite data blocks.
 
-## 02 — Reader info
+<div class="grid cards" markdown>
 
-**`examples/02_reader_info.py`**
+-   __01 — Basic card UID__
 
-Calls `get_version()`, `ping()`, and prints `repr(reader)`.
+    ---
+
+    Reads the UID three ways and prints the reader's firmware version.
+
+    `ping()` · `get_version()` · `get_uid()` · `get_uid_int()` · `scan_tag()`
+
+    [:octicons-file-code-24: `01_basic_uid.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/01_basic_uid.py)
+
+-   __02 — Event mode__
+
+    ---
+
+    Turns on auto mode and waits for the reader to announce a card.
+
+    `wait_for_card()`
+
+    [:octicons-file-code-24: `02_event_mode.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/02_event_mode.py)
+
+-   __03 — Async wait__
+
+    ---
+
+    Waits for a card without blocking an asyncio event loop. This is the
+    pattern for FastAPI and other async services.
+
+    `wait_for_card_async()`
+
+    [:octicons-file-code-24: `03_async_wait.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/03_async_wait.py)
+
+-   __04 — Read & write a block__
+
+    ---
+
+    Runs the full authenticate → read → write → verify cycle on one 16-byte block.
+
+    `authenticate_sector()` · `read_block()` · `write_block()`
+
+    [:octicons-file-code-24: `04_read_write_block.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/04_read_write_block.py)
+
+-   __05 — Sector operations__
+
+    ---
+
+    Reads and writes all three data blocks of a sector in one call.
+
+    `read_sector()` · `write_sector()`
+
+    [:octicons-file-code-24: `05_sector_operations.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/05_sector_operations.py)
+
+-   __06 — Multi-sector bulk I/O__
+
+    ---
+
+    Reads and writes blocks across several sectors, each with its own key.
+
+    `read_blocks()` · `write_blocks()` · `SectorAuth`
+
+    [:octicons-file-code-24: `06_multi_sector_bulk.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/06_multi_sector_bulk.py)
+
+-   __07 — Value blocks__
+
+    ---
+
+    Creates a stored-value counter, then increments, decrements, transfers
+    and restores it.
+
+    `create_value_block()` · `increment_value()` · `decrement_value()` · `transfer()` · `restore()`
+
+    [:octicons-file-code-24: `07_value_blocks.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/07_value_blocks.py)
+
+-   __08 — Multi-card enumeration__
+
+    ---
+
+    Lists every card on the reader using HALT and REQUEST ALL.
+
+    `get_uid()` · `halt()` · `request_all()`
+
+    [:octicons-file-code-24: `08_multi_card.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/08_multi_card.py)
+
+-   __09 — RF power cycling__
+
+    ---
+
+    Recovers a stuck card by switching the RF field off and on, inside a retry loop.
+
+    `rf_power()` · `authenticate_sector()` · `read_block()`
+
+    [:octicons-file-code-24: `09_rf_power_reset.py`](https://github.com/SparkDrago05/mifarepy/blob/main/examples/09_rf_power_reset.py)
+
+</div>
+
+## 01 — Basic card UID
 
 ```bash
-python examples/02_reader_info.py
+python examples/01_basic_uid.py
 ```
 
----
-
-## 03 — Read sector
-
-**`examples/03_read_sector.py`**
-
-Authenticates sector 1 and reads all three data blocks.  Shows both dict and
-combined-string output modes.
+## 02 — Event mode
 
 ```bash
-python examples/03_read_sector.py
+python examples/02_event_mode.py
 ```
 
----
-
-## 04 — Write sector
-
-**`examples/04_write_sector.py`**
-
-Writes a test pattern to sector 1 using `write_sector()`, then reads it back to
-verify.
+## 03 — Async wait
 
 ```bash
-python examples/04_write_sector.py
+python examples/03_async_wait.py
 ```
 
----
-
-## 05 — Multi-sector bulk read
-
-**`examples/05_read_blocks.py`**
-
-Uses `read_blocks()` with the new `auth=` / `SectorAuth` style to read blocks from
-multiple sectors in one call.
+## 04 — Read and write a block
 
 ```bash
-python examples/05_read_blocks.py
+python examples/04_read_write_block.py
 ```
 
----
-
-## 06 — Value blocks
-
-**`examples/06_value_blocks.py`**
-
-Shows `create_value_block()`, `read_value()`, `increment_value()`,
-`decrement_value()`, `transfer()`, and `restore()`.
+## 05 — Sector operations
 
 ```bash
-python examples/06_value_blocks.py
+python examples/05_sector_operations.py
 ```
 
----
-
-## 07 — Write then re-authenticate
-
-**`examples/07_write_reauth.py`**
-
-Demonstrates that `authenticate_sector()` safely re-selects the card after a write,
-avoiding the MIFARE IDLE-state NAK bug.
+## 06 — Multi-sector bulk I/O
 
 ```bash
-python examples/07_write_reauth.py
+python examples/06_multi_sector_bulk.py
 ```
 
----
+## 07 — Value blocks
 
-## 08 — Multi-card anti-collision
+```bash
+python examples/07_value_blocks.py
+```
 
-**`examples/08_multi_card.py`**
-
-Uses `request_all()`, `select_card()`, and `halt()` to cycle through multiple cards
-in the RF field.
+## 08 — Multi-card enumeration
 
 ```bash
 python examples/08_multi_card.py
 ```
 
----
-
-## 09 — Async card wait
-
-**`examples/09_async_wait.py`**
-
-Uses `wait_for_card_async()` inside an `asyncio.run()` loop — ideal for non-blocking
-integration with FastAPI or Django async views.
+## 09 — RF power cycling
 
 ```bash
-python examples/09_async_wait.py
+python examples/09_rf_power_reset.py
 ```

@@ -1,58 +1,132 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
+<div class="mp-hero" markdown>
+
 # mifarepy
 
-**mifarepy** is a Python library for interfacing with PROMAG RFID readers using the
-GNetPlus® serial protocol. It targets MIFARE Classic readers connected over RS-232/USB
-and exposes every documented command through a clean, typed Python API.
+Read, write and manage MIFARE® Classic cards from Python, using PROMAG and
+other GIGA-TMS readers that speak the GNetPlus® serial protocol. Typed,
+tested and dependency-light: the only dependency is `pyserial`.
 
----
+[Get started](installation.md){ .md-button .md-button--primary }
+[API reference](api.md){ .md-button }
+[GitHub](https://github.com/SparkDrago05/mifarepy){ .md-button }
 
-## Features
-
-| Category | What you get |
-|---|---|
-| **Card detection** | `get_uid()`, `get_uid_int()`, `scan_tag()`, `is_card_present()`, `ping()`, `wait_for_card()`, `wait_for_card_async()` |
-| **Authentication** | `authenticate_sector()` (SAVE_KEY + AUTHENTICATE), `authenticate_sector_cached()` (AUTHENTICATE_KEY, skip reload) |
-| **Block I/O** | `read_block()`, `write_block()`, `read_sector()`, `write_sector()`, `write_sector_uniform()` |
-| **Bulk I/O** | `read_blocks()` / `write_blocks()` with per-sector `SectorAuth` |
-| **Value blocks** | `create_value_block()`, `read_value()`, `write_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()` |
-| **Reader control** | `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
-| **Async** | `wait_for_card_async()` — non-blocking asyncio support |
-| **Type safety** | `@overload` on `read_block` / `get_second_sn`, `Literal['A','B']`, `SectorAuth`, `CardInfo` |
-| **Error detail** | `InvalidMessage.raw_bytes`, `GNetPlusError.nak_code` |
-
----
-
-## Quick start
-
-```python
-from mifarepy import MifareReader
-
-KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default
-
-with MifareReader('/dev/ttyUSB0') as reader:
-    print('Reader:', reader.get_version())
-    print('Card UID:', reader.get_uid())         # e.g. '0xEDCEF8C3'
-
-    reader.authenticate_sector(0, KEY)
-    data = reader.read_sector(combine=True)      # 48-char hex string
-    print('Sector 0 data:', data)
-```
-
----
-
-## Installation
+</div>
 
 ```bash
 pip install mifarepy
 ```
 
-See [Installation](installation.md) for more options.
+```python
+from mifarepy import MifareReader
 
----
+KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default key
 
-## Navigation
+with MifareReader('/dev/ttyUSB0') as reader:
+    print('Reader:', reader.get_version())
+    print('Card UID:', reader.get_uid())          # e.g. '0xEDCEF8C3'
 
-- [Installation](installation.md) — pip, from source, Raspberry Pi setup
-- [Usage Guide](usage.md) — all APIs explained with worked examples
-- [API Reference](api.md) — complete method signatures and docstrings
-- [Examples](examples.md) — 9 runnable example scripts
+    reader.authenticate_sector(1, KEY)
+    print('Block 0:', reader.read_block(0))       # 32-char hex string
+    reader.write_block(0, bytes(range(16)))
+```
+
+## What you can do
+
+<div class="grid cards" markdown>
+
+-   :material-card-search-outline:{ .lg .middle } __Detect cards__
+
+    ---
+
+    Read UIDs, check whether a card is present, block or `await` until one
+    is tapped, and enumerate several cards at once.
+
+    [:octicons-arrow-right-24: Card detection](usage.md#card-detection)
+
+-   :material-key-variant:{ .lg .middle } __Authenticate__
+
+    ---
+
+    Unlock sectors with Key A or Key B, or re-use a key that is already
+    loaded in the reader.
+
+    [:octicons-arrow-right-24: Authentication](usage.md#authentication)
+
+-   :material-database-edit-outline:{ .lg .middle } __Read & write__
+
+    ---
+
+    Single 16-byte blocks, whole sectors, or arbitrary block maps across
+    several sectors with per-sector keys.
+
+    [:octicons-arrow-right-24: Reading and writing](usage.md#reading-and-writing)
+
+-   :material-wallet-outline:{ .lg .middle } __Value blocks__
+
+    ---
+
+    Stored-value counters for wallets, credits and loyalty points, with
+    overflow checks.
+
+    [:octicons-arrow-right-24: Value blocks](usage.md#value-blocks)
+
+-   :material-lightning-bolt-outline:{ .lg .middle } __Events & async__
+
+    ---
+
+    Let the reader announce cards by itself, or wait for one without
+    blocking your asyncio event loop.
+
+    [:octicons-arrow-right-24: Waiting for cards](usage.md#wait-for-card-blocking-async)
+
+-   :material-shield-check-outline:{ .lg .middle } __Typed & safe__
+
+    ---
+
+    Full type hints, `py.typed`, typed errors with readable NAK
+    descriptions, and guards that never touch sector trailers by accident.
+
+    [:octicons-arrow-right-24: Error handling](usage.md#error-handling)
+
+</div>
+
+## Supported hardware
+
+| Reader | Interface | Notes |
+|---|---|---|
+| PROMAG **PCR310U** | USB (PL2303 USB-serial) | Desktop reader; appears as `/dev/ttyUSB*` or `COMx` |
+| PROMAG **MF5** | RS-232 / TTL | OEM read/write module |
+| PROMAG **MF10** | RS-232 / TTL | OEM read/write module |
+| Other GNetPlus® devices | Serial | Anything implementing the GNetPlus MIFARE command set |
+
+Cards: MIFARE Classic 1K and 4K. See [Hardware & setup](hardware.md) to get
+connected, and the [MIFARE Classic primer](mifare-classic.md) if you are new
+to sectors, keys and access bits.
+
+## Learn more
+
+<div class="grid cards" markdown>
+
+-   :material-book-open-variant:{ .lg .middle } [__Usage guide__](usage.md)
+
+    Every feature, with worked examples.
+
+-   :material-chip:{ .lg .middle } [__GNetPlus protocol__](protocol.md)
+
+    Frame format, CRC, command and error-code tables.
+
+-   :material-school-outline:{ .lg .middle } [__MIFARE Classic primer__](mifare-classic.md)
+
+    Memory layout, keys, access conditions and value blocks.
+
+-   :material-play-box-multiple-outline:{ .lg .middle } [__Examples__](examples.md)
+
+    Nine runnable scripts, from reading a UID to working with several cards at once.
+
+</div>

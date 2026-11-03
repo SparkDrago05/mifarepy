@@ -26,3 +26,13 @@ pytest_cache/
 
 # Ignore MkDocs files
 site/
+
+# Coverage, linters, local docs build
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.venv/
+site/

@@ -12,23 +12,14 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 
-"""
-mifarepy: A Python library for interfacing with the PROMAG RFID card reader
-using the GNetPlus® protocol.
+"""High-level reader API for MIFARE readers that speak the GNetPlus® protocol.
 
-Features:
-- Communicates via serial interface (`pyserial`).
-- Supports various RFID commands (get serial number, read/write blocks, etc.).
-- Includes error handling for invalid messages and device errors.
+```python
+from mifarepy import MifareReader
 
-Example:
-    from mifarepy import MifareReader
-
-    with MifareReader('/dev/ttyUSB0') as reader:
-        print('S/N:', reader.get_sn(endian='little', as_string=True))
-
-License:
-    GNU Lesser General Public Licence v3.0 or later
+with MifareReader('/dev/ttyUSB0') as reader:
+    print('UID:', reader.get_uid())
+```
 """
 
 import asyncio

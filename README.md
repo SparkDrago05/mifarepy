@@ -1,214 +1,95 @@
-# **mifarepy**
+# mifarepy
 
 [![PyPI Version](https://img.shields.io/pypi/v/mifarepy.svg)](https://pypi.org/project/mifarepy/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/mifarepy.svg)](https://pypi.org/project/mifarepy/)
 [![PyPI Downloads](https://static.pepy.tech/badge/mifarepy)](https://pepy.tech/projects/mifarepy)
-[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
-[![GitHub Issues](https://img.shields.io/github/issues/SparkDrago05/mifarepy)](https://github.com/SparkDrago05/mifarepy/issues)
 [![Tests](https://github.com/SparkDrago05/mifarepy/actions/workflows/test.yml/badge.svg)](https://github.com/SparkDrago05/mifarepy/actions/workflows/test.yml)
+[![Typed](https://img.shields.io/badge/typing-typed-blue.svg)](https://peps.python.org/pep-0561/)
+[![License](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](LICENSE)
 
-## **Overview**
+**Read, write and manage MIFARE® Classic cards from Python** with PROMAG and
+other GIGA-TMS readers that speak the **GNetPlus®** serial protocol.
+Typed, tested, and its only dependency is `pyserial`.
 
-`mifarepy` is a **Python library** for interfacing with **MIFARE® RFID card readers** (e.g., PROMAG PCR310U, MF5, MF10) using the **GNetPlus® protocol**.
-It provides a clean, object-oriented API for performing common operations such as:
-- **Interacting via RS232 and USB-serial** interfaces
-- **Supporting GNetPlus® commands** (Read, Write, Authenticate, Auto Mode, etc.)
-- Reading a card’s serial number (`get_sn`, `wait_for_card`)
-- Querying reader firmware version (`get_version`)
-- Enabling/disabling automatic card events (`set_auto_mode`, `wait_for_card`)
-- Authenticating sectors (`authenticate_sector`)
-- Reading and writing 16‑byte blocks (`read_block`, `write_block`)
-- Bulk operations on sectors and arbitrary block mappings (`read_sector`, `write_sector`, `read_blocks`, `write_blocks`)
+📖 **Documentation:** <https://sparkdrago05.github.io/mifarepy/>
 
----
+## Install
 
-## **Attribution & Original Repository**
-
-This project is **derived from** the original `gnetplus.py` which is written in Python 2 by **Chow Loong Jin & Harish Pillay**.
-
-- **Original Repository:** [gnetplus by harishpillay](https://github.com/harishpillay/gnetplus)
-- **Original Authors:** Chow Loong Jin & Harish Pillay
-- **License:** This project remains under **LGPL v3.0 or later** to comply with the original licensing terms.
-
-This version of `gnetplus.py` includes **bug fixes, more features, documentation improvements, and enhanced compatibility**.
-
----
-
-## **Supported Hardware**
-
-This library is compatible with **PROMAG** MIFARE® readers, including:
-
-- **PCR310U** (USB-based)
-- **MF5 OEM Read/Write Module**
-- **MF10 MIFARE Read/Write Module**
-- **Other devices using the GNetPlus® protocol**
-
-These readers operate at **13.56 MHz** and support **MIFARE® 1K/4K, Ultra-Light, and PRO cards**.
-
----
-
-## **Installation**
-
-To install `mifarepy`, ensure **Python 3.6+** is installed, then run:
-
-```sh
+```bash
 pip install mifarepy
 ```
 
-Or manually include the `mifarepy.py` file in your project.
+Requires Python 3.9 or newer. Works on Linux (including Raspberry Pi), Windows and macOS.
 
----
-
-## Quickstart
+## Quick start
 
 ```python
-from mifarepy.reader import MifareReader
+from mifarepy import MifareReader
 
-# Initialize the reader on your serial port
-reader = MifareReader('/dev/ttyUSB0')
+KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default key
 
-# Enable auto mode and wait for card detection
-reader.set_auto_mode(True)
-card_sn = reader.wait_for_card(timeout=10)
-print('Found card:', card_sn)
+with MifareReader('/dev/ttyUSB0') as reader:      # Windows: 'COM3'
+    print('Reader:', reader.get_version())
+    print('Card UID:', reader.get_uid())          # e.g. '0xEDCEF8C3'
 
-# Authenticate sector 1 with the default Key A
-default_key = bytes.fromhex('FFFFFFFFFFFF')
-reader.authenticate_sector(sector=1, key=default_key, key_type='A')
-
-# Read block 4 and display as hex
-block_data = reader.read_block(4)
-print('Block 4 data:', block_data)
-
-# Write 16 bytes to block 4
-payload = bytes(range(16))
-reader.write_block(4, payload)
-```
----
-
-## **Communicating with the Reader**
-
-### **Detecting the Device**
-
-When plugged into a **Linux** system (such as **Raspberry Pi** or **Fedora**), the reader is detected as:
-
-```
-Prolific Technology, Inc. PL2303 Serial Port
+    reader.authenticate_sector(1, KEY)
+    print('Block 0:', reader.read_block(0))       # 32-char hex string
+    reader.write_block(0, bytes(range(16)))
 ```
 
-To find the assigned port, check:
+## Features
 
-```sh
-dmesg | grep ttyUSB
+| | |
+|---|---|
+| **Card detection** | `get_uid()`, `scan_tag()`, `is_card_present()`, `wait_for_card()`, `wait_for_card_async()`, multi-card `request_all()` |
+| **Authentication** | `authenticate_sector()` with Key A or B, `authenticate_sector_cached()` |
+| **Block I/O** | `read_block()`, `write_block()`, `read_sector()`, `write_sector()` (never touches sector trailers) |
+| **Bulk I/O** | `read_blocks()` / `write_blocks()` across sectors with per-sector `SectorAuth` keys |
+| **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()` |
+| **Reader control** | `ping()`, `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
+| **Developer experience** | Context manager, full type hints (`py.typed`), typed errors with readable NAK codes |
+
+## Supported hardware
+
+| Reader | Connection |
+|---|---|
+| PROMAG **PCR310U** | USB (PL2303 USB-serial) |
+| PROMAG **MF5** / **MF10** | RS-232 / TTL serial |
+| Other GNetPlus® readers | Serial |
+
+Cards: MIFARE Classic 1K and 4K (13.56 MHz, ISO/IEC 14443 A).
+See [Hardware & setup](https://sparkdrago05.github.io/mifarepy/hardware/) for finding the
+port, Linux permissions and troubleshooting.
+
+## Documentation
+
+- [Usage guide](https://sparkdrago05.github.io/mifarepy/usage/): every feature with examples
+- [MIFARE Classic primer](https://sparkdrago05.github.io/mifarepy/mifare-classic/): sectors, keys, access bits, value blocks
+- [GNetPlus protocol reference](https://sparkdrago05.github.io/mifarepy/protocol/): frame format, CRC, commands, error codes
+- [API reference](https://sparkdrago05.github.io/mifarepy/api/)
+- [Examples](examples/): nine runnable scripts
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. See the
+[contributing guide](https://sparkdrago05.github.io/mifarepy/contributing/).
+
+```bash
+git clone https://github.com/SparkDrago05/mifarepy.git && cd mifarepy
+pip install -e ".[dev]"
+pytest && ruff check . && mypy
 ```
 
-Example output:
+## Credits & license
 
-```
-usb 6-1: pl2303 converter now attached to ttyUSB3
-```
+Maintained by **Spark Drago** ([@SparkDrago05](https://github.com/SparkDrago05)).
 
-This means the device is at `/dev/ttyUSB3`.
+mifarepy began as a Python 3 port of [gnetplus](https://github.com/harishpillay/gnetplus)
+(© 2013 Red Hat Inc., by Chow Loong Jin and Harish Pillay) and has since grown into a
+separate library.
 
----
+Licensed under the **GNU Lesser General Public License v3.0 or later**. See
+[LICENSE](LICENSE) and [COPYING](COPYING).
 
-## **Supported Commands**
-
-This library supports the following **GNetPlus® protocol commands**:
-
-| Command               | Functionality                                |
-|-----------------------|----------------------------------------------|
-| **Polling**           | Check if a reader is connected               |
-| **Get Version**       | Retrieve firmware version                    |
-| **Logon/Logoff**      | Secure access                                |
-| **Get Serial Number** | Retrieve MIFARE® card serial number          |
-| **Read Block**        | Read memory block from MIFARE® 1K card       |
-| **Write Block**       | Write to a specific block                    |
-| **Authenticate**      | Perform authentication with Key A/Key B      |
-| **Set Auto Mode**     | Enable/Disable automatic event notifications |
-| **Request All**       | Detect multiple cards in the field           |
-
-For a full list of commands, refer to the *
-*[mifarepy Communication Protocol](./TM970013_GNetPlusCommunicationProtocol_REV_D.pdf)**.
-
----
-
-## **Example Output**
-
-When a card is detected, you will see:
-
-```
-Found card: 0x19593d65
-Tap card again.
-Found card: 0x19593d65
-```
-
-If no card is found, the script prompts:
-
-```
-Tap card again.
-```
-
----
-
-## **MIFARE® 1K Card Structure**
-
-The **MIFARE® 1K card** consists of **16 sectors**, each with **4 blocks** (16 bytes each).  
-Memory layout:
-
-- **Blocks 0-3**: Sector 0 (First block stores manufacturer data)
-- **Blocks 4-7**: Sector 1
-- **Blocks 8-11**: Sector 2
-- **...**
-- **Blocks 60-63**: Sector 15 (Contains access keys & conditions)
-
-For authentication, use **Key A** or **Key B** stored in the last block of each sector.
-
----
-
-## **MIFARE® 1K Authentication & Security**
-
-1. **Authenticate** before reading/writing.
-2. Use **GNetPlus SAVE_KEY command** to store keys securely.
-3. Blocks are **protected** by access conditions.
-4. **Keys should not be stored in the same sector** as sensitive data.
-
-For further details, refer to:
-
-- **[MIFARE Application Programming Guide](./TM970014_MifareAppliactionProgrammingGuide_REV_H.pdf)**
-- **[MIFARE Demo Quick Start](./TM970018_Mifare%20Demo%20Quick%20Start.pdf)**
-
----
-
-## **License**
-
-This project is licensed under **GNU Lesser General Public License v3.0 or later (LGPL-3.0-or-later)**.  
-See [LICENSE](./LICENSE) for the LGPL-3.0 text and [COPYING](./COPYING) for the GPL-3.0 text it builds on.
-
----
-
-## **Documentation & References**
-
-For more details, refer to:
-
-- **[GNetPlus Communication Protocol](./TM970013_GNetPlusCommunicationProtocol_REV_D.pdf)**
-- **[MIFARE Application Guide](./TM970014_MifareAppliactionProgrammingGuide_REV_H.pdf)**
-- **[MIFARE RWD Specification](./TM970023_RWD_SPEC.pdf)**
-- **[MF10 Instruction Sheet](./TM951179_MF10_Instruction.pdf)**
-
-For further information, visit: [GIGA-TMS Inc.](http://www.gigatms.com.tw)
-
----
-
-## **Author & Credits**
-
-**Original Authors:**
-
-- **Chow Loong Jin** (<lchow@redhat.com>)
-- **Harish Pillay** (<hpillay@redhat.com>)
-
-**Adapted & Maintained by:**
-
-- **Spark Drago** (<https://github.com/SparkDrago05>)
-
----
+MIFARE® is a registered trademark of NXP B.V., and GNetPlus® is a trademark of GIGA-TMS Inc.
+mifarepy is an independent project and is not affiliated with either company.
