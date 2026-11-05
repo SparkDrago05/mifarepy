@@ -4,7 +4,14 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [3.1.1] - 2026-11-05
+
+Verified on a PROMAG PCR310U (firmware `PGM0487 V1.4R0`). Upgrade from 3.1.0
+is recommended if you use `increment_value()` / `decrement_value()`.
+
+### Added
+- Terminal demo GIF in the README and on the docs home page, recorded with a
+  real reader and card (`docs/assets/record.sh` re-records it).
 
 ### Fixed
 - `increment_value()` / `decrement_value()` no longer send SET_VALUE (`0x26`)
@@ -131,6 +138,7 @@ First stable release on PyPI, renamed from `pymifare` to `mifarepy`.
 - Python 3 port of gnetplus: GNetPlus protocol framing and CRC, reading card
   serial numbers over USB or RS-232 serial.
 
+[3.1.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/SparkDrago05/mifarepy/compare/v2.0...v3.0.0
