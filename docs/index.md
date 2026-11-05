@@ -29,7 +29,7 @@ from mifarepy import MifareReader
 
 KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default key
 
-with MifareReader('/dev/ttyUSB0') as reader:
+with MifareReader.auto() as reader:      # or MifareReader('/dev/ttyUSB0')
     print('Reader:', reader.get_version())
     print('Card UID:', reader.get_uid())          # e.g. '0xEDCEF8C3'
 
@@ -91,10 +91,28 @@ with MifareReader('/dev/ttyUSB0') as reader:
 
     ---
 
-    Full type hints, `py.typed`, typed errors with readable NAK
-    descriptions, and guards that never touch sector trailers by accident.
+    Full type hints, `py.typed`, errors that name the problem and suggest
+    a fix, and guards that never touch sector trailers by accident.
 
     [:octicons-arrow-right-24: Error handling](usage.md#error-handling)
+
+-   :material-flask-outline:{ .lg .middle } __Test without hardware__
+
+    ---
+
+    A built-in simulated reader and cards, with ready-made pytest
+    fixtures, so your tests and CI need no reader.
+
+    [:octicons-arrow-right-24: Testing without hardware](testing.md)
+
+-   :material-magnify-scan:{ .lg .middle } __Zero-config__
+
+    ---
+
+    `MifareReader.auto()` finds the reader, and `enable_wire_trace()`
+    shows every frame when something goes wrong.
+
+    [:octicons-arrow-right-24: Find the reader](hardware.md#find-the-reader-automatically)
 
 </div>
 

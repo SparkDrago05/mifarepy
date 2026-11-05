@@ -19,6 +19,32 @@ part, but there is no Ultralight read/write API yet.
 Serial settings are fixed by the reader firmware: **19200 baud, 8 data bits,
 no parity, 1 stop bit**. `MifareReader` uses these by default.
 
+## Find the reader automatically
+
+```python
+from mifarepy import MifareReader
+
+with MifareReader.auto() as reader:
+    print('Reader on', reader.port, '-', reader.get_version())
+```
+
+`auto()` looks for the Prolific PL2303 USB-serial chip (USB ID `067b:2303`
+and later revisions) and sends a POLLING command to confirm the device is a
+GNetPlus reader. To see which ports it considers:
+
+```python
+from mifarepy.discovery import find_ports
+
+for port in find_ports(include_all=True):
+    print(port.device, port.description, '<- reader?' if port.likely_reader else '')
+```
+
+If nothing is found, `ReaderNotFoundError` lists every serial port on the
+computer. For readers on an RS-232 adapter with another chip, use
+`MifareReader.auto(include_all=True)`; it probes every serial port, so only use
+it when no other serial devices would mind a few stray bytes. Otherwise pass
+the port name, as below.
+
 ## Find the serial port
 
 === "Linux"
@@ -102,13 +128,15 @@ Now use `MifareReader('/dev/promag')`.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `RuntimeError: Unable to open port` | Wrong port name or no permission | Check the port as above. On Linux, join the `dialout` group. |
+| `ReaderConnectionError: Unable to open port` | Wrong port name, port busy, or no permission | The message ends with a hint. Use `MifareReader.auto()`, or check the port as above. On Linux, join the `dialout` group. |
+| `ReaderNotFoundError` from `auto()` | No PL2303 reader answered | Check the cable, try `auto(include_all=True)`, or pass the port name. |
 | `InvalidMessage` / timeouts on every call | Another program has the port open, or the wrong baud rate | Close other serial tools and keep the default 19200 baud |
-| `GNetPlusError: No tag in field` (NAK `0x1F`) | No card on the reader | Place the card flat on the reader, or wait with `wait_for_card()` |
-| `GNetPlusError: Authentication error` (NAK `0x04`) | Wrong key or key type for that sector | Check the key and Key A/B. See the [primer](mifare-classic.md#keys-and-authentication). |
-| `GNetPlusError: Not authenticated` (NAK `0x0A`) | Read/write before authenticating, or a different sector | Call `authenticate_sector()` for the sector you access |
+| `NoCardError: No tag in field` (NAK `0x1F`) | No card on the reader | Place the card flat on the reader, or wait with `wait_for_card()` |
+| `AuthenticationError` (NAK `0x04`) | Wrong key or key type for that sector | Check the key and Key A/B. See the [primer](mifare-classic.md#keys-and-authentication). |
+| `NotAuthenticatedError` (NAK `0x0A`) | Read/write before authenticating, or a different sector | Call `authenticate_sector()` for the sector you access |
 | Card stops responding after an aborted transaction | Card state machine is stuck | Cycle the RF field with `rf_power(False)` / `rf_power(True)`. See [example 09](examples.md#09-rf-power-cycling). |
 | Spurious events after reconnecting | Auto mode was left on | `close()` turns auto mode off. Call `set_auto_mode(False)` if you crashed before closing. |
+| Anything else unexpected | | Turn on [frame tracing](usage.md#frame-tracing) with `enable_wire_trace()` and look at the exact frames and NAK codes. |
 
 The full list of reader error codes is in the
 [protocol reference](protocol.md#error-codes).

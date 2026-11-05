@@ -149,8 +149,9 @@ Key type codes: **Key A = `0x60`**, **Key B = `0x61`**. Value operation codes:
 ## Error codes
 
 When a command fails, the reader replies with `NAK` and a single error byte.
-mifarepy raises `GNetPlusError` and fills in `nak_code` and
-`code_description`:
+mifarepy raises a subclass of `GNetPlusError` (for example
+`AuthenticationError` for `0x04`; see [error handling](usage.md#error-handling))
+and fills in `nak_code`, `code_description` and a fix `hint`:
 
 | Code | Description in mifarepy | Typical cause |
 |---|---|---|

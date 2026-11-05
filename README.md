@@ -31,7 +31,7 @@ from mifarepy import MifareReader
 
 KEY = bytes.fromhex('FFFFFFFFFFFF')   # factory default key
 
-with MifareReader('/dev/ttyUSB0') as reader:      # Windows: 'COM3'
+with MifareReader.auto() as reader:     # or MifareReader('/dev/ttyUSB0') / ('COM3')
     print('Reader:', reader.get_version())
     print('Card UID:', reader.get_uid())          # e.g. '0xEDCEF8C3'
 
@@ -51,7 +51,10 @@ with MifareReader('/dev/ttyUSB0') as reader:      # Windows: 'COM3'
 | **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`, with native, verified transfer/restore |
 | **Card layout** | MIFARE Classic 1K and 4K, including the 16-block sectors 32–39; `mifarepy.layout` helpers for block arithmetic |
 | **Reader control** | `ping()`, `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
-| **Developer experience** | Context manager, full type hints (`py.typed`), typed errors with readable NAK codes |
+| **Zero-config** | `MifareReader.auto()` finds the reader; errors name the problem and suggest a fix (`AuthenticationError`, `NoCardError`, …) |
+| **Testing without hardware** | Built-in simulated reader and cards, plus pytest fixtures (`mifare_reader`, `mifare_card`) |
+| **Debugging** | `enable_wire_trace()` prints every GNetPlus frame, decoded, with keys hidden |
+| **Developer experience** | Context manager, full type hints (`py.typed`) |
 
 ## Supported hardware
 
@@ -70,6 +73,7 @@ port, Linux permissions and troubleshooting.
 - [Usage guide](https://sparkdrago05.github.io/mifarepy/usage/): every feature with examples
 - [MIFARE Classic primer](https://sparkdrago05.github.io/mifarepy/mifare-classic/): sectors, keys, access bits, value blocks
 - [GNetPlus protocol reference](https://sparkdrago05.github.io/mifarepy/protocol/): frame format, CRC, commands, error codes
+- [Testing without hardware](https://sparkdrago05.github.io/mifarepy/testing/): simulator and pytest fixtures
 - [API reference](https://sparkdrago05.github.io/mifarepy/api/)
 - [Examples](examples/): nine runnable scripts
 

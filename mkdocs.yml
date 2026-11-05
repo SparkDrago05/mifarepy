@@ -69,6 +69,7 @@ nav:
   - Guides:
       - Usage guide: usage.md
       - MIFARE Classic primer: mifare-classic.md
+      - Testing without hardware: testing.md
       - Examples: examples.md
   - Reference:
       - API reference: api.md

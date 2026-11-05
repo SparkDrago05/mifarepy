@@ -9,7 +9,11 @@ This guide covers every major feature of **mifarepy** and is structured so you c
 ```python
 from mifarepy import MifareReader
 
-# context manager (recommended — closes port automatically)
+# find the reader automatically (recommended)
+with MifareReader.auto() as reader:
+    print(reader.port)            # e.g. '/dev/ttyUSB0' or 'COM3'
+
+# or name the port yourself
 with MifareReader('/dev/ttyUSB0') as reader:
     ...
 
@@ -22,6 +26,16 @@ finally:
 ```
 
 `MifareReader` accepts the same keyword arguments as `serial.Serial` (e.g. `timeout=`).
+
+`MifareReader.auto()` looks for the Prolific PL2303 USB-serial chip used in
+PROMAG readers and checks that the device answers before returning it. If no
+reader is found it raises `ReaderNotFoundError`, listing the serial ports it
+saw. Pass `include_all=True` to also try other serial ports (for example an
+RS-232 adapter with a different chip). See
+[Hardware & setup](hardware.md#find-the-reader-automatically).
+
+No reader at hand? `MifareReader.simulated()` connects to a built-in
+simulator. See [Testing without hardware](testing.md).
 
 ```python
 print(repr(reader))
@@ -279,15 +293,42 @@ reader.set_auto_mode(False)   # disable (called automatically by close())
 
 ## Error handling
 
+When the reader rejects a command, mifarepy raises a specific subclass of
+`GNetPlusError`, with the context and a hint on how to fix it:
+
+```text
+mifarepy.AuthenticationError: NAK received — Authentication error (sector 3, key A) (raw=b'\x04')
+Hint: The key or key type is wrong for this sector. Check the 6-byte key and
+whether the sector expects Key A or Key B. New cards use FFFFFFFFFFFF.
+```
+
+| Exception | When | NAK codes |
+|---|---|---|
+| `NoCardError` | No card on the reader | `0x1F`, `0x03` |
+| `AuthenticationError` | Wrong key or key type | `0x04`, `0x09` |
+| `NotAuthenticatedError` | Block accessed before authenticating its sector | `0x0A` |
+| `CardReadError` / `CardWriteError` | Read or write refused (access conditions, card moved) | `0x12` / `0x0F` |
+| `ValueBlockError` | Value operation failed | `0x0E`, `0x10`, `0x11` |
+| `CardTimeoutError` | Card stopped answering | `0x1C` |
+| `ReaderProtocolError` | Command or parameter not accepted by the reader | `0x27`, `0xE0`–`0xE6` |
+| `ReaderAccessError` | Reader needs a logon or host key | `0x2D`, `0x2F`, `0x33` |
+
+All of them are `GNetPlusError`, so existing `except GNetPlusError` code keeps
+working. Catch the specific ones when you want to react differently:
+
 ```python
-from mifarepy import GNetPlusError, InvalidMessage
+from mifarepy import AuthenticationError, GNetPlusError, InvalidMessage, NoCardError
 
 try:
     reader.authenticate_sector(0, KEY_A)
+except NoCardError:
+    print('Please tap your card')
+except AuthenticationError as e:
+    print('Wrong key:', e.hint)
 except GNetPlusError as e:
-    print(e.code_description)   # 'Authentication error'
-    print(hex(e.nak_code))      # 0x4
-    print(repr(e.raw))          # b'\x04'
+    print(e.code_description)   # e.g. 'Read error'
+    print(hex(e.nak_code))      # e.g. 0x12
+    print(repr(e.raw))          # b'\x12'
 
 try:
     from mifarepy.protocol import Message
@@ -299,9 +340,40 @@ except InvalidMessage as e:
 
 ---
 
+Opening a port that doesn't exist, is busy, or that you may not access raises
+`ReaderConnectionError` (a `RuntimeError`) with a hint, such as joining the
+`dialout` group on Linux.
+
 See the [error code table](protocol.md#error-codes) for every NAK code the
 reader can return, and [troubleshooting](hardware.md#troubleshooting) for
 common fixes.
+
+---
+
+## Frame tracing
+
+To see exactly what goes over the wire, turn on tracing:
+
+```python
+from mifarepy import MifareReader, enable_wire_trace
+
+enable_wire_trace()                 # prints to stderr
+with MifareReader.auto() as reader:
+    reader.authenticate_sector(1, KEY_A)
+```
+
+```text
+10:42:01.512 TX SELECT_CARD      01 00 22 04 | 34 C6 9B D3 | E2 28
+10:42:01.530 RX ACK              01 00 06 01 | 08 | 73 E0
+10:42:01.531 TX SAVE_KEY         01 00 2B 08 | 60 01 ** ** ** ** ** ** | 82 90
+10:42:01.598 RX ACK              01 00 06 00 |  | 60 72
+10:42:01.599 TX AUTHENTICATE     01 00 23 02 | 60 01 | 84 67
+10:42:01.615 RX NAK 0x04         01 00 15 01 | 04 | B3 11   Authentication error
+```
+
+Keys are shown as `**`. Pass `show_keys=True` to print them, but only on test
+cards. Frames are logged on the `mifarepy.wire` logger at DEBUG level, so you
+can also route them through your own logging setup.
 
 ---
 

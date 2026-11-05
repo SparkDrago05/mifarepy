@@ -6,10 +6,14 @@ the top-level package:
 
 ```python
 from mifarepy import (
-    MifareReader, SectorAuth, CardInfo,
-    GNetPlusError, InvalidMessage,
+    MifareReader, SectorAuth, CardInfo, layout,
+    GNetPlusError, AuthenticationError, NoCardError, InvalidMessage,  # and the other errors below
+    ReaderConnectionError, ReaderNotFoundError,
+    enable_wire_trace, disable_wire_trace,
     QueryMessage, ResponseMessage, Message, gencrc,
 )
+from mifarepy.simulator import SimulatedCard, SimulatedReader
+from mifarepy.discovery import find_ports
 ```
 
 ## Reader
@@ -37,11 +41,96 @@ from mifarepy import (
 
 ## Errors
 
+Reader NAKs raise a subclass of `GNetPlusError`; see
+[error handling](usage.md#error-handling) for which code raises which.
+
 ::: mifarepy.protocol.GNetPlusError
     options:
       heading_level: 3
 
+::: mifarepy.protocol.NoCardError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.AuthenticationError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.NotAuthenticatedError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.CardReadError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.CardWriteError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.ValueBlockError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.CardTimeoutError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.ReaderProtocolError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.ReaderAccessError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.ReaderConnectionError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.ReaderNotFoundError
+    options:
+      heading_level: 3
+
+::: mifarepy.protocol.error_for_nak
+    options:
+      heading_level: 3
+
 ::: mifarepy.protocol.InvalidMessage
+    options:
+      heading_level: 3
+
+## Finding readers
+
+::: mifarepy.discovery
+    options:
+      heading_level: 3
+      show_root_heading: true
+
+## Simulator
+
+See [Testing without hardware](testing.md) for a guide.
+
+::: mifarepy.simulator.SimulatedCard
+    options:
+      heading_level: 3
+
+::: mifarepy.simulator.SimulatedReader
+    options:
+      heading_level: 3
+      members: [place_card, remove_card]
+
+## Frame tracing
+
+::: mifarepy.trace.enable_wire_trace
+    options:
+      heading_level: 3
+
+::: mifarepy.trace.disable_wire_trace
+    options:
+      heading_level: 3
+
+::: mifarepy.trace.format_frame
     options:
       heading_level: 3
 
