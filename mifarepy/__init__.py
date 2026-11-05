@@ -13,29 +13,54 @@
 
 from . import layout
 from .protocol import (
+    AuthenticationError,
     CardInfo,
+    CardReadError,
+    CardTimeoutError,
+    CardWriteError,
     GNetPlusError,
     InvalidMessage,
     Message,
+    NoCardError,
+    NotAuthenticatedError,
     QueryMessage,
+    ReaderAccessError,
+    ReaderConnectionError,
+    ReaderNotFoundError,
+    ReaderProtocolError,
     ResponseMessage,
     SectorAuth,
+    ValueBlockError,
     gencrc,
 )
 from .reader import MifareReader
+from .trace import disable_wire_trace, enable_wire_trace
 
-__version__ = '3.1.1'
+__version__ = '3.2.0'
 
 __all__ = [
+    'AuthenticationError',
     'CardInfo',
+    'CardReadError',
+    'CardTimeoutError',
+    'CardWriteError',
     'GNetPlusError',
     'InvalidMessage',
     'Message',
     'MifareReader',
+    'NoCardError',
+    'NotAuthenticatedError',
     'QueryMessage',
+    'ReaderAccessError',
+    'ReaderConnectionError',
+    'ReaderNotFoundError',
+    'ReaderProtocolError',
     'ResponseMessage',
     'SectorAuth',
+    'ValueBlockError',
     '__version__',
+    'disable_wire_trace',
+    'enable_wire_trace',
     'gencrc',
     'layout',
 ]

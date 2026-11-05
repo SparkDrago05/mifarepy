@@ -35,6 +35,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.entry-points.pytest11]
+mifarepy = "mifarepy.testing"
+
 [project.urls]
 Homepage = "https://github.com/SparkDrago05/mifarepy"
 Documentation = "https://sparkdrago05.github.io/mifarepy/"

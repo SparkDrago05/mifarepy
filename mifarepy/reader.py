@@ -23,8 +23,10 @@ with MifareReader('/dev/ttyUSB0') as reader:
 """
 
 import asyncio
+import errno
 import logging
 import struct
+import sys
 import time
 import warnings
 from typing import Any, Literal, Optional, Union, overload
@@ -32,7 +34,18 @@ from typing import Any, Literal, Optional, Union, overload
 import serial
 
 from . import layout
-from .protocol import CardInfo, GNetPlusError, InvalidMessage, QueryMessage, ResponseMessage, SectorAuth
+from .protocol import (
+    CardInfo,
+    GNetPlusError,
+    InvalidMessage,
+    QueryMessage,
+    ReaderConnectionError,
+    ReaderNotFoundError,
+    ResponseMessage,
+    SectorAuth,
+    error_for_nak,
+)
+from .trace import log_frame
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +59,23 @@ _UNSUPPORTED_COMMAND_NAKS = frozenset({0xE1, 0xE6})
 ValueOps = Literal['auto', 'native', 'software']
 
 
+def _open_hint(port: str, exc: Exception) -> str:
+    """Suggest a fix for a serial port that failed to open."""
+    code = getattr(exc, 'errno', None)
+    text = str(exc).lower()
+    if code in (errno.EACCES, errno.EPERM) or 'permission' in text or 'access is denied' in text:
+        if sys.platform.startswith('linux'):
+            return ('Permission denied. Add yourself to the dialout group '
+                    '(sudo usermod -aG dialout "$USER"), then log out and back in.')
+        return 'Permission denied. Close other programs using the port and try again.'
+    if code == errno.EBUSY or 'busy' in text:
+        return 'The port is in use by another program. Close it and try again.'
+    if code == errno.ENOENT or 'no such file' in text or 'cannot find' in text or 'filenotfound' in text:
+        return ('That port does not exist. Use MifareReader.auto() to find the reader, '
+                'or run: python -m serial.tools.list_ports -v')
+    return 'Check the cable and port name, or use MifareReader.auto() to find the reader.'
+
+
 class MifareReader:
     """
     Class for interfacing with the RFID card reader.
@@ -54,7 +84,10 @@ class MifareReader:
 
     ```python
     with MifareReader('/dev/ttyUSB0') as reader:
-        uid = reader.get_sn()
+        uid = reader.get_uid()
+
+    with MifareReader.auto() as reader:          # find the reader automatically
+        uid = reader.get_uid()
     ```
     """
 
@@ -85,8 +118,16 @@ class MifareReader:
             **kwargs: Extra keyword arguments passed to `serial.Serial`.
 
         Raises:
-            RuntimeError: If the serial port cannot be opened.
+            ReaderConnectionError: If the serial port cannot be opened (a
+                `RuntimeError` subclass whose message includes a fix hint).
         """
+        self._init_state(port, baudrate, deviceaddr, value_ops)
+        try:
+            self.serial = serial.Serial(port, baudrate=baudrate, **kwargs)
+        except (serial.SerialException, OSError) as exc:
+            raise ReaderConnectionError(port, str(exc), _open_hint(port, exc)) from exc
+
+    def _init_state(self, port: str, baudrate: int, deviceaddr: int, value_ops: ValueOps) -> None:
         if value_ops not in ('auto', 'native', 'software'):
             raise ValueError("value_ops must be 'auto', 'native' or 'software'")
         self.port = port
@@ -100,10 +141,139 @@ class MifareReader:
         self._auth_sector: Optional[int] = None
         self._auth_key_type: Literal['A', 'B'] = 'A'
 
+    # ------------------------------------------------------------------
+    # Other ways to connect
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def from_serial(
+        cls,
+        serial_port: Any,
+        *,
+        deviceaddr: int = 0,
+        value_ops: ValueOps = 'auto',
+    ) -> 'MifareReader':
+        """Use an already-open serial port (or any object with the same interface).
+
+        The object needs ``read(n)``, ``write(data)``, a ``timeout`` attribute,
+        and ideally ``reset_input_buffer()``, ``close()`` and ``is_open``.
+        This is how `simulated()` plugs in a `SimulatedReader`.
+
+        Args:
+            serial_port: An open `serial.Serial` or compatible object.
+            deviceaddr: Device address (default: 0).
+            value_ops: See the constructor.
+        """
+        reader = cls.__new__(cls)
+        port = getattr(serial_port, 'port', None) or repr(serial_port)
+        reader._init_state(str(port), getattr(serial_port, 'baudrate', 19200), deviceaddr, value_ops)
+        reader.serial = serial_port
+        return reader
+
+    @classmethod
+    def simulated(cls, card: Any = None, *, empty: bool = False, **kwargs: Any) -> 'MifareReader':
+        """Create a reader connected to a `mifarepy.simulator.SimulatedReader`.
+
+        No hardware is needed: use it in tests, demos and CI. The simulator
+        is available as ``reader.serial``, so you can place and remove cards:
+
+        ```python
+        from mifarepy import MifareReader
+        from mifarepy.simulator import SimulatedCard
+
+        reader = MifareReader.simulated()            # a blank 1K card is in the field
+        reader.serial.place_card(SimulatedCard(uid='0x11223344', size='4K'))
+        ```
+
+        Args:
+            card: A `SimulatedCard` to put in the field. Defaults to a new blank 1K card.
+            empty: Start with no card in the field instead.
+            **kwargs: Passed to `from_serial()` (``deviceaddr``, ``value_ops``).
+        """
+        from .simulator import SimulatedCard, SimulatedReader
+
+        if card is None and not empty:
+            card = SimulatedCard()
+        return cls.from_serial(SimulatedReader(card), **kwargs)
+
+    @classmethod
+    def auto(
+        cls,
+        *,
+        probe: bool = True,
+        include_all: bool = False,
+        **kwargs: Any,
+    ) -> 'MifareReader':
+        """Find a connected reader and open it.
+
+        Looks for serial ports whose USB IDs match the bridge used in PROMAG
+        readers (Prolific PL2303), and, with ``probe=True``, checks that each
+        one answers a GNetPlus POLLING command before returning it.
+
+        ```python
+        with MifareReader.auto() as reader:
+            print(reader.port, reader.get_version())
+        ```
+
+        Args:
+            probe: Confirm each candidate answers before using it. Set to
+                False to open the first matching port without sending anything.
+            include_all: Also try ports that don't look like a PROMAG reader,
+                such as RS-232 adapters with other chips. Probing sends a few
+                bytes to each port, so only use this when no other serial
+                devices could be disturbed.
+            **kwargs: Passed to the constructor (``baudrate``, ``value_ops``,
+                ``timeout``, ...).
+
+        Raises:
+            ReaderNotFoundError: If no reader was found. Its message lists the
+                serial ports that were seen.
+        """
+        from .discovery import find_ports
+
+        candidates = find_ports(include_all=include_all)
+        tried: list[str] = []
+        for info in candidates:
+            try:
+                reader = cls(info.device, **kwargs)
+            except ReaderConnectionError as exc:
+                tried.append(f'{info.device}: {exc.hint or exc}')
+                continue
+            if not probe:
+                return reader
+            if reader._probe():
+                return reader
+            tried.append(f'{info.device}: no answer to POLLING')
+            reader.serial.close()
+
+        seen = find_ports(include_all=True)
+        lines = ['No MIFARE reader found.']
+        if tried:
+            lines.append('Tried: ' + '; '.join(tried))
+        if seen:
+            lines.append('Serial ports on this computer: ' + ', '.join(
+                f'{p.device} ({p.description})' for p in seen))
+            if not include_all:
+                lines.append('If your reader uses a different USB-serial chip, '
+                             'try MifareReader.auto(include_all=True) or pass the port name.')
+        else:
+            lines.append('No serial ports were found. Check the USB cable and driver.')
+        raise ReaderNotFoundError('\n'.join(lines), ports=[(p.device, p.description) for p in seen])
+
+    def _probe(self, timeout: float = 0.5) -> bool:
+        """Return True if a GNetPlus device answers POLLING within *timeout*."""
+        orig = getattr(self.serial, 'timeout', None)
+        self.serial.timeout = timeout
         try:
-            self.serial = serial.Serial(port, baudrate=baudrate, **kwargs)
-        except serial.SerialException as pe:
-            raise RuntimeError(f'Unable to open port {port}: {pe}') from pe
+            try:
+                self.serial.reset_input_buffer()
+            except (AttributeError, OSError):
+                pass
+            return self.ping()
+        except (InvalidMessage, OSError, serial.SerialException):
+            return False
+        finally:
+            self.serial.timeout = orig
 
     # ------------------------------------------------------------------
     # Resource management
@@ -145,7 +315,9 @@ class MifareReader:
             function: @see Message.function
             data: @see Message.data
         """
-        QueryMessage(self.deviceaddr, function, data).sendto(self.serial)
+        frame = bytes(QueryMessage(self.deviceaddr, function, data))
+        log_frame('TX', frame)
+        self.serial.write(frame)
 
     def readmsg(self, sink_events: bool = False) -> ResponseMessage:
         """
@@ -162,7 +334,13 @@ class MifareReader:
             GNetPlusError: If a NAK response is received.
         """
         while True:
-            response = ResponseMessage.readfrom(self.serial)
+            try:
+                response = ResponseMessage.readfrom(self.serial)
+            except InvalidMessage as exc:
+                if exc.raw_bytes:
+                    log_frame('RX', exc.raw_bytes)
+                raise
+            log_frame('RX', bytes(response))
 
             if sink_events and response.function == ResponseMessage.EVN:
                 continue
@@ -174,6 +352,15 @@ class MifareReader:
             raise error
 
         return response
+
+    def _readmsg_ctx(self, context: str) -> ResponseMessage:
+        """`readmsg()`, adding *context* (e.g. ``'sector 3, key A'``) to NAK errors."""
+        try:
+            return self.readmsg()
+        except GNetPlusError as exc:
+            if not exc.raw:
+                raise
+            raise error_for_nak(exc.raw, context) from None
 
     def _resolve_per_sector_param(self, param, sector, default):
         """
@@ -624,7 +811,7 @@ class MifareReader:
         orig_timeout = getattr(self.serial, 'timeout', None)
         self.serial.timeout = timeout
         try:
-            self.readmsg()
+            self._readmsg_ctx(f'sector {sector}, key {key_type}')
         finally:
             self.serial.timeout = orig_timeout
         self._remember_auth(sector, key_type)
@@ -668,7 +855,7 @@ class MifareReader:
         orig_timeout = getattr(self.serial, 'timeout', None)
         self.serial.timeout = timeout
         try:
-            self.readmsg()
+            self._readmsg_ctx(f'sector {sector}, stored key {key_type}')
         finally:
             self.serial.timeout = orig_timeout
         self._remember_auth(sector, key_type)
@@ -676,6 +863,11 @@ class MifareReader:
     def _remember_auth(self, sector: int, key_type: str) -> None:
         self._auth_sector = sector
         self._auth_key_type = 'B' if key_type == 'B' else 'A'
+
+    def _block_context(self, block: int) -> str:
+        if self._auth_sector is None:
+            return f'block {block}, no sector authenticated'
+        return f'block {block} of sector {self._auth_sector}'
 
     def _sector_or_current(self, sector: Optional[int]) -> Optional[int]:
         """Return *sector* if given, else the most recently authenticated sector."""
@@ -707,7 +899,7 @@ class MifareReader:
             GNetPlusError: If the read fails.
         """
         self.sendmsg(QueryMessage.READ_BLOCK, bytes([block]))
-        response = self.readmsg()
+        response = self._readmsg_ctx(self._block_context(block))
         return response.data if raw else response.data.hex()
 
     def write_block(self, block: int, data: "Union[str, bytes]") -> str:
@@ -730,7 +922,7 @@ class MifareReader:
         if len(data) != 16:
             raise ValueError('Data must be exactly 16 bytes long')
         self.sendmsg(QueryMessage.WRITE_BLOCK, bytes([block]) + data)
-        return self.readmsg().data.hex()
+        return self._readmsg_ctx(self._block_context(block)).data.hex()
 
     # ------------------------------------------------------------------
     # Value block operations
