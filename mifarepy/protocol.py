@@ -68,17 +68,160 @@ class GNetPlusError(Exception):
     """
     Exception thrown when receiving a NAK (negative acknowledge) response.
 
+    NAKs raised by `MifareReader` use the more specific subclasses below
+    (`AuthenticationError`, `NoCardError`, ...), so you can catch exactly
+    the failure you care about. Catching `GNetPlusError` still catches them all.
+
     Attributes:
         raw: Raw NAK payload bytes from the reader.
         code_description: Human-readable description of the NAK code if known.
+        nak_code: Integer NAK code (``raw[0]``), or ``0`` when raw is not a single byte.
+        hint: A short suggestion for fixing the problem, or ``''``.
     """
 
-    def __init__(self, message: str, raw: bytes = b'') -> None:
-        super().__init__(message)
+    #: Default fix hint for this kind of error.
+    default_hint: str = ''
+
+    def __init__(self, message: str, raw: bytes = b'', hint: Optional[str] = None) -> None:
         self.raw = raw
         self.code_description: str = _NAK_CODES.get(raw, 'Unknown error')
-        #: Integer NAK code (``raw[0]``), or ``0`` when raw is not a single byte.
         self.nak_code: int = raw[0] if len(raw) == 1 else 0
+        self.hint: str = self.default_hint if hint is None else hint
+        super().__init__(f'{message}\nHint: {self.hint}' if self.hint else message)
+
+
+class NoCardError(GNetPlusError):
+    """No card answered (NAK ``0x1F`` no tag, or ``0x03`` empty)."""
+
+    default_hint = ('No card was found. Place the card flat on the reader, or use '
+                    'wait_for_card() to wait for one.')
+
+
+class AuthenticationError(GNetPlusError):
+    """The card rejected the key (NAK ``0x04``) or the key was malformed (``0x09``)."""
+
+    default_hint = ("The key or key type is wrong for this sector. Check the 6-byte key "
+                    "and whether the sector expects Key A or Key B. New cards use "
+                    "FFFFFFFFFFFF.")
+
+
+class NotAuthenticatedError(GNetPlusError):
+    """A block was accessed without authenticating its sector (NAK ``0x0A``)."""
+
+    default_hint = ('Call authenticate_sector() for the sector that holds this block '
+                    'before reading or writing it. Block numbers are relative to that sector.')
+
+
+class CardReadError(GNetPlusError):
+    """The card refused or failed a read (NAK ``0x12``)."""
+
+    default_hint = ("The read failed. The card may have moved away, or the sector's "
+                    "access conditions don't allow this key to read the block.")
+
+
+class CardWriteError(GNetPlusError):
+    """The card refused or failed a write (NAK ``0x0F``)."""
+
+    default_hint = ("The write failed. The card may have moved away, or the sector's "
+                    "access conditions don't allow this key to write the block.")
+
+
+class ValueBlockError(GNetPlusError):
+    """A value-block operation failed (NAK ``0x0E`` transfer, ``0x10`` increment, ``0x11`` decrement)."""
+
+    default_hint = ('The value operation failed. Check the block was created with '
+                    'create_value_block() and that its access conditions allow the operation.')
+
+
+class CardTimeoutError(GNetPlusError):
+    """The card did not answer in time (NAK ``0x1C``)."""
+
+    default_hint = 'The card stopped answering. Keep it still on the reader and try again.'
+
+
+class ReaderProtocolError(GNetPlusError):
+    """The reader rejected the frame or command itself (NAK ``0x27``, ``0xE0``–``0xE6``)."""
+
+    default_hint = ('The reader did not accept the command. It may not support it, or a '
+                    'parameter is out of range. Turn on frame tracing to see the exact bytes.')
+
+
+class ReaderAccessError(GNetPlusError):
+    """The reader requires a logon or host key (NAK ``0x2D``, ``0x2F``, ``0x33``)."""
+
+    default_hint = 'The reader is password- or key-protected. Log on to the reader first.'
+
+
+#: NAK code -> exception class raised for it.
+NAK_ERROR_CLASSES: dict[int, type[GNetPlusError]] = {
+    0x03: NoCardError,
+    0x1F: NoCardError,
+    0x04: AuthenticationError,
+    0x09: AuthenticationError,
+    0x0A: NotAuthenticatedError,
+    0x12: CardReadError,
+    0x0F: CardWriteError,
+    0x0E: ValueBlockError,
+    0x10: ValueBlockError,
+    0x11: ValueBlockError,
+    0x1C: CardTimeoutError,
+    0x27: ReaderProtocolError,
+    0xE0: ReaderProtocolError,
+    0xE1: ReaderProtocolError,
+    0xE2: ReaderProtocolError,
+    0xE3: ReaderProtocolError,
+    0xE4: ReaderProtocolError,
+    0xE5: ReaderProtocolError,
+    0xE6: ReaderProtocolError,
+    0x2D: ReaderAccessError,
+    0x2F: ReaderAccessError,
+    0x33: ReaderAccessError,
+}
+
+
+def error_for_nak(raw: bytes, context: str = '') -> GNetPlusError:
+    """Build the most specific `GNetPlusError` subclass for a NAK payload.
+
+    Args:
+        raw: The NAK data bytes (normally a single error code).
+        context: Optional text describing what was being done, e.g. ``'sector 3, key A'``.
+
+    Returns:
+        An exception instance (not raised).
+    """
+    desc = _NAK_CODES.get(raw, 'Unknown error')
+    cls = NAK_ERROR_CLASSES.get(raw[0], GNetPlusError) if len(raw) == 1 else GNetPlusError
+    where = f' ({context})' if context else ''
+    return cls(f'NAK received — {desc}{where} (raw={raw!r})', raw=raw)
+
+
+class ReaderConnectionError(RuntimeError):
+    """The serial port could not be opened.
+
+    Subclass of `RuntimeError`, which is what earlier versions raised.
+
+    Attributes:
+        port: The port that failed to open.
+        hint: A short suggestion for fixing the problem.
+    """
+
+    def __init__(self, port: str, reason: str, hint: str = '') -> None:
+        self.port = port
+        self.hint = hint
+        message = f'Unable to open port {port}: {reason}'
+        super().__init__(f'{message}\nHint: {hint}' if hint else message)
+
+
+class ReaderNotFoundError(RuntimeError):
+    """`MifareReader.auto()` could not find a reader.
+
+    Attributes:
+        ports: The serial ports that were seen, as ``(device, description)`` pairs.
+    """
+
+    def __init__(self, message: str, ports: "Optional[list[tuple[str, str]]]" = None) -> None:
+        self.ports = ports or []
+        super().__init__(message)
 
 
 @dataclass
@@ -345,15 +488,11 @@ class ResponseMessage(Message):
 
     def to_error(self) -> Optional[GNetPlusError]:
         """
-        Convert a NAK response into a GNetPlusError with code description.
+        Convert a NAK response into the matching `GNetPlusError` subclass.
 
         Returns:
-            GNetPlusError if this is a NAK response, else None.
+            A `GNetPlusError` (subclass) if this is a NAK response, else None.
         """
         if self.function == self.NAK:
-            desc = _NAK_CODES.get(self.data, 'Unknown error')
-            return GNetPlusError(
-                f'NAK received — {desc} (raw={self.data!r})',
-                raw=self.data,
-            )
+            return error_for_nak(self.data)
         return None
