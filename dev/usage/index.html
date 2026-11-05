@@ -1752,14 +1752,21 @@ built-in redundancy (stored three times: value, inverted value, value again).</p
 </span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="c1"># Re-commit (repair after partial failure)</span>
 </span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="n">reader</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Increment, decrement, transfer and restore use the reader's native value
-commands and then read the block back to confirm the result. If a reader does
-not support those commands, mifarepy falls back to writing the new value
-directly. You can pick one behaviour explicitly:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">value_ops</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">)</span>      <span class="c1"># default: native, verified, with fallback</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">value_ops</span><span class="o">=</span><span class="s1">'native'</span><span class="p">)</span>    <span class="c1"># native only; raise on any problem</span>
+<p>Increment and decrement read the value and write the new one. Transfer and
+restore use the reader's native RESTORE/TRANSFER commands and then read the
+block back to confirm the result; if a reader does not support those
+commands, mifarepy falls back to writing the value directly. You can pick one
+behaviour explicitly:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">value_ops</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">)</span>      <span class="c1"># default: as described above</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">value_ops</span><span class="o">=</span><span class="s1">'native'</span><span class="p">)</span>    <span class="c1"># native only (incl. SET_VALUE); raise on any problem</span>
 </span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">value_ops</span><span class="o">=</span><span class="s1">'software'</span><span class="p">)</span>  <span class="c1"># read-modify-write only (pre-3.1 behaviour)</span>
 </span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Native increment/decrement</p>
+<p><code>value_ops='native'</code> sends SET_VALUE for increment and decrement. PCR310U
+firmware <code>PGM0487 V1.4R0</code> computes it wrongly for most deltas, so test it
+on your reader (<code>reader.get_version()</code>) before relying on it.</p>
+</div>
 <hr />
 <h2 id="reader-control">Reader control<a class="headerlink" href="#reader-control" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># RF field power (useful for card reset without physical removal)</span>

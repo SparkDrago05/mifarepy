@@ -1625,11 +1625,13 @@ four bytes hold a block address used by backup schemes.</p>
 </span></code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">How mifarepy changes values</p>
-<p><code>increment_value()</code> and <code>decrement_value()</code> use the card's own increment
-and decrement operations, so they also work on blocks whose access
-conditions allow decrementing but not writing (access bits <code>0 0 1</code>).
-<code>transfer()</code> and <code>restore()</code> use the card's restore/transfer buffer.
-Every operation is checked by reading the block back. For money-like
+<p><code>increment_value()</code> and <code>decrement_value()</code> read the value and write the
+new one, so the block's access conditions must allow writing. With
+<code>value_ops='native'</code> they use the card's own increment and decrement
+operations instead, which also work on decrement-only blocks (access bits
+<code>0 0 1</code>) on readers whose firmware computes them correctly (see
+<a href="../protocol/">Protocol</a>). <code>transfer()</code> and <code>restore()</code> use the card's
+restore/transfer buffer and are checked by reading the block back. For money-like
 balances, also keep a backup copy in a second block and the authoritative
 balance on your server.</p>
 </div>

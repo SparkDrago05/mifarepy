@@ -1810,12 +1810,17 @@ readers typically implement polling, version, address, echo and reset.</p>
 <strong>increment = <code>0xC1</code></strong>, <strong>decrement = <code>0xC0</code></strong>.</p>
 <div class="admonition note">
 <p class="admonition-title">Verified value operations</p>
-<p><code>increment_value()</code> and <code>decrement_value()</code> send <code>0x26</code>; <code>transfer()</code> and
-<code>restore()</code> send <code>0x34</code> then <code>0x33</code>. mifarepy reads the block back to check
-the result. If a reader rejects these commands (<code>0xE1</code> / <code>0xE6</code>) or the
-result is unexpected, it falls back to writing the value with <code>0x28</code> and
-remembers that for the rest of the session. Pass
-<code>MifareReader(..., value_ops='software')</code> or <code>'native'</code> to choose one path.</p>
+<p><code>transfer()</code> and <code>restore()</code> send <code>0x34</code> then <code>0x33</code>. mifarepy reads the
+block back to check the result. If a reader rejects these commands
+(<code>0xE1</code> / <code>0xE6</code>) or the result is unexpected, it falls back to writing the
+value with <code>0x28</code> and remembers that for the rest of the session.</p>
+<p><code>increment_value()</code> and <code>decrement_value()</code> read the value and write the
+new one with <code>0x28</code>. They send <code>0x26</code> only with
+<code>MifareReader(..., value_ops='native')</code>: on PCR310U firmware
+<code>PGM0487 V1.4R0</code>, <code>0x26</code> and <code>0x32</code> drop bit 7 of every delta byte and
+lose carries (for example 1000 + 250 gives 866), and some decrements are
+rejected with NAK <code>0x06</code>. Pass <code>value_ops='software'</code> to avoid native
+commands entirely.</p>
 </div>
 <h2 id="error-codes">Error codes<a class="headerlink" href="#error-codes" title="Permanent link">&para;</a></h2>
 <p>When a command fails, the reader replies with <code>NAK</code> and a single error byte.

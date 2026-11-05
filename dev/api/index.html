@@ -3787,11 +3787,13 @@ the top-level package:</p>
             <td>
               <div class="doc-md-description">
                 <p>How value-block arithmetic is performed.
-<code>'auto'</code> (default) uses the reader's native value commands
-(SET_VALUE / RESTORE / TRANSFER), verifies the result, and falls
-back to read-modify-write if the reader does not support them.
-<code>'native'</code> uses only the native commands; <code>'software'</code> uses
-only read-modify-write (the behaviour before 3.1).</p>
+<code>'auto'</code> (default) increments and decrements by
+read-modify-write, and uses the native RESTORE / TRANSFER
+commands for <code>transfer()</code> / <code>restore()</code>, verifying the result
+and falling back to read-modify-write if they fail.
+<code>'native'</code> uses only the native commands, including
+SET_VALUE for increment/decrement; <code>'software'</code> uses only
+read-modify-write (the behaviour before 3.1).</p>
               </div>
             </td>
             <td>
@@ -6031,10 +6033,10 @@ format (value stored three times: twice normal, once inverted).</p>
     <div class="doc doc-contents ">
 
         <p>Add <em>delta</em> to a MIFARE value block.</p>
-<p>Uses the reader's SET_VALUE command (increment + transfer) and reads
-the block back to confirm the result. If the reader does not support
-the command, or the result is not what was expected, the value is
-written directly instead (see the <code>value_ops</code> constructor argument).</p>
+<p>Reads the current value and writes the new one (read-modify-write).
+With <code>value_ops='native'</code> the reader's SET_VALUE command
+(increment + transfer) is sent instead and the result is read back
+to confirm it; a NAK or a wrong result raises <code>GNetPlusError</code>.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -6135,10 +6137,12 @@ written directly instead (see the <code>value_ops</code> constructor argument).<
     <div class="doc doc-contents ">
 
         <p>Subtract <em>delta</em> from a MIFARE value block.</p>
-<p>Uses the reader's SET_VALUE command (decrement + transfer), which also
-works on blocks whose access conditions allow decrement but not
-write (for example prepaid balances). The result is read back and
-verified; see <code>increment_value()</code> for the fallback behaviour.</p>
+<p>Reads the current value and writes the new one (read-modify-write),
+so the block's access conditions must allow writing. With
+<code>value_ops='native'</code> the reader's SET_VALUE command (decrement +
+transfer) is sent instead, which also works on decrement-only blocks
+(for example prepaid balances) if your reader's firmware computes it
+correctly; see <code>increment_value()</code>.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
