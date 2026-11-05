@@ -32,7 +32,7 @@ from typing import Any, Literal, Optional, Union, overload
 import serial
 
 from . import layout
-from .protocol import CardInfo, GNetPlusError, QueryMessage, ResponseMessage, SectorAuth
+from .protocol import CardInfo, GNetPlusError, InvalidMessage, QueryMessage, ResponseMessage, SectorAuth
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +75,13 @@ class MifareReader:
             baudrate: Baudrate for interfacing with the device. Don't change this unless you know what you're doing.
             deviceaddr: Device address (default: 0).
             value_ops: How value-block arithmetic is performed.
-                ``'auto'`` (default) uses the reader's native value commands
-                (SET_VALUE / RESTORE / TRANSFER), verifies the result, and falls
-                back to read-modify-write if the reader does not support them.
-                ``'native'`` uses only the native commands; ``'software'`` uses
-                only read-modify-write (the behaviour before 3.1).
+                ``'auto'`` (default) increments and decrements by
+                read-modify-write, and uses the native RESTORE / TRANSFER
+                commands for `transfer()` / `restore()`, verifying the result
+                and falling back to read-modify-write if they fail.
+                ``'native'`` uses only the native commands, including
+                SET_VALUE for increment/decrement; ``'software'`` uses only
+                read-modify-write (the behaviour before 3.1).
             **kwargs: Extra keyword arguments passed to `serial.Serial`.
 
         Raises:
@@ -417,8 +419,6 @@ class MifareReader:
         Raises:
             TimeoutError: If no card is detected within the timeout.
         """
-        self.set_auto_mode()
-
         try:
             card_sn = self.get_uid()
             if card_sn:
@@ -427,14 +427,33 @@ class MifareReader:
         except GNetPlusError:
             pass  # No card yet; wait for EVN
 
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            response = self.readmsg()
-            if (response.function == ResponseMessage.EVN
-                    and ResponseMessage.EVN_CARD_IN in response.data):
-                logger.info('Card insertion event received')
-                return self.get_uid()
-            time.sleep(0.1)
+        # Enable events only after the presence check: on PGM0487 V1.4R0 a
+        # REQUEST that finds no card stops EVN events until auto mode is set
+        # again. A card that arrived in between is reported as soon as auto
+        # mode is enabled.
+        self.set_auto_mode()
+
+        # Bound every read by the time left, otherwise a blocking serial port
+        # (timeout=None, the default) waits for an event forever.
+        deadline = time.monotonic() + timeout
+        orig_timeout = getattr(self.serial, 'timeout', None)
+        try:
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self.serial.timeout = remaining
+                try:
+                    response = self.readmsg()
+                except InvalidMessage:
+                    continue  # read timed out (or a partial frame); re-check the deadline
+                if (response.function == ResponseMessage.EVN
+                        and ResponseMessage.EVN_CARD_IN in response.data):
+                    logger.info('Card insertion event received')
+                    self.serial.timeout = orig_timeout
+                    return self.get_uid()
+        finally:
+            self.serial.timeout = orig_timeout
 
         raise TimeoutError('No card detected within the time limit')
 
@@ -471,7 +490,7 @@ class MifareReader:
         """
         loop = asyncio.get_event_loop()
         return await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: self.wait_for_card(int(timeout))),
+            loop.run_in_executor(None, lambda: self.wait_for_card(timeout)),
             timeout=timeout + 1,  # give the inner timeout a chance to fire first
         )
 
@@ -488,7 +507,8 @@ class MifareReader:
         """
         self.sendmsg(QueryMessage.GET_VERSION)
         response = self.readmsg().data
-        return response.decode('latin1', errors='ignore').strip()
+        # PGM0487 firmware pads the string with a trailing NUL.
+        return response.decode('latin1', errors='ignore').strip('\x00 \t\r\n')
 
     def set_auto_mode(self, enabled: bool = True) -> bytes:
         """
@@ -853,14 +873,25 @@ class MifareReader:
         if delta <= 0 or delta > 2**31 - 1:
             raise ValueError('delta must be a positive 32-bit integer')
 
+    def _set_value(self, block: int, op: int, delta: int, expected: int) -> None:
+        """Increment/decrement *block* by *delta*, leaving it at *expected*."""
+        # SET_VALUE is only sent when value_ops='native'. PGM0487 V1.4R0
+        # firmware masks bit 7 of every delta byte and drops carries, so a
+        # wrong value would sit on the card until read-back corrected it.
+        if self.value_ops != 'native':
+            self.write_value(block, expected)
+            return
+        payload = bytes([block, op]) + struct.pack('<i', delta)
+        self._value_operation(block, expected, [(QueryMessage.SET_VALUE, payload)])
+
     def increment_value(self, block: int, delta: int) -> None:
         """
         Add *delta* to a MIFARE value block.
 
-        Uses the reader's SET_VALUE command (increment + transfer) and reads
-        the block back to confirm the result. If the reader does not support
-        the command, or the result is not what was expected, the value is
-        written directly instead (see the ``value_ops`` constructor argument).
+        Reads the current value and writes the new one (read-modify-write).
+        With ``value_ops='native'`` the reader's SET_VALUE command
+        (increment + transfer) is sent instead and the result is read back
+        to confirm it; a NAK or a wrong result raises `GNetPlusError`.
 
         Args:
             block: Block index relative to the authenticated sector.
@@ -877,17 +908,18 @@ class MifareReader:
             raise ValueError(
                 f'Increment overflows signed 32-bit range: {current} + {delta} = {new_val}'
             )
-        payload = bytes([block, VALUE_INCREMENT]) + struct.pack('<i', delta)
-        self._value_operation(block, new_val, [(QueryMessage.SET_VALUE, payload)])
+        self._set_value(block, VALUE_INCREMENT, delta, new_val)
 
     def decrement_value(self, block: int, delta: int) -> None:
         """
         Subtract *delta* from a MIFARE value block.
 
-        Uses the reader's SET_VALUE command (decrement + transfer), which also
-        works on blocks whose access conditions allow decrement but not
-        write (for example prepaid balances). The result is read back and
-        verified; see `increment_value()` for the fallback behaviour.
+        Reads the current value and writes the new one (read-modify-write),
+        so the block's access conditions must allow writing. With
+        ``value_ops='native'`` the reader's SET_VALUE command (decrement +
+        transfer) is sent instead, which also works on decrement-only blocks
+        (for example prepaid balances) if your reader's firmware computes it
+        correctly; see `increment_value()`.
 
         Args:
             block: Block index relative to the authenticated sector.
@@ -904,8 +936,7 @@ class MifareReader:
             raise ValueError(
                 f'Decrement underflows signed 32-bit range: {current} - {delta} = {new_val}'
             )
-        payload = bytes([block, VALUE_DECREMENT]) + struct.pack('<i', delta)
-        self._value_operation(block, new_val, [(QueryMessage.SET_VALUE, payload)])
+        self._set_value(block, VALUE_DECREMENT, delta, new_val)
 
     def transfer(self, source_block: int, dest_block: int) -> None:
         """

@@ -241,16 +241,22 @@ reader.transfer(source_block=0, dest_block=1)
 reader.restore(block=0)
 ```
 
-Increment, decrement, transfer and restore use the reader's native value
-commands and then read the block back to confirm the result. If a reader does
-not support those commands, mifarepy falls back to writing the new value
-directly. You can pick one behaviour explicitly:
+Increment and decrement read the value and write the new one. Transfer and
+restore use the reader's native RESTORE/TRANSFER commands and then read the
+block back to confirm the result; if a reader does not support those
+commands, mifarepy falls back to writing the value directly. You can pick one
+behaviour explicitly:
 
 ```python
-MifareReader('/dev/ttyUSB0', value_ops='auto')      # default: native, verified, with fallback
-MifareReader('/dev/ttyUSB0', value_ops='native')    # native only; raise on any problem
+MifareReader('/dev/ttyUSB0', value_ops='auto')      # default: as described above
+MifareReader('/dev/ttyUSB0', value_ops='native')    # native only (incl. SET_VALUE); raise on any problem
 MifareReader('/dev/ttyUSB0', value_ops='software')  # read-modify-write only (pre-3.1 behaviour)
 ```
+
+!!! warning "Native increment/decrement"
+    `value_ops='native'` sends SET_VALUE for increment and decrement. PCR310U
+    firmware `PGM0487 V1.4R0` computes it wrongly for most deltas, so test it
+    on your reader (`reader.get_version()`) before relying on it.
 
 ---
 

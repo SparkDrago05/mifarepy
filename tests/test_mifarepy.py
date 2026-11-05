@@ -711,3 +711,43 @@ def test_write_blocks_auth_param(monkeypatch):
     r.write_blocks({1: {0: b'\xAB' * 16}}, auth={1: sa})
     assert bytes([QueryMessage.SAVE_KEY]) in dummy.written
     assert bytes([QueryMessage.WRITE_BLOCK]) in dummy.written
+
+
+def test_get_version_strips_trailing_nul(monkeypatch):
+    # PGM0487 V1.4R0 firmware pads its version string with a space and a NUL.
+    resp = build_response(0, ResponseMessage.ACK, b'PGM0487 V1.4R0 (Build:110609) \x00')
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(resp))
+    assert MifareReader('/dev/ttyUSB0').get_version() == 'PGM0487 V1.4R0 (Build:110609)'
+
+
+def test_wait_for_card_honours_timeout_when_no_event(monkeypatch):
+    # No card present, auto mode on, then the reader stays silent.
+    resp = (
+        build_response(0, ResponseMessage.NAK, b'\x1f')
+        + build_response(0, ResponseMessage.ACK, b'\x01')
+    )
+    dummy = DummySerial(resp)
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
+    r = MifareReader('/dev/ttyUSB0')
+    with pytest.raises(TimeoutError):
+        r.wait_for_card(timeout=0.2)
+    assert dummy.timeout is None  # original serial timeout restored
+
+
+def test_wait_for_card_returns_uid_on_insert_event(monkeypatch):
+    resp = (
+        build_response(0, ResponseMessage.NAK, b'\x1f')        # no card yet
+        + build_response(0, ResponseMessage.ACK, b'\x01')      # auto mode on
+        + build_response(0, ResponseMessage.EVN, b'I')         # card inserted
+        + build_response(0, ResponseMessage.ACK, b'\x04\x00')  # REQUEST
+        + build_response(0, ResponseMessage.ACK, b'\x34\xc6\x9b\xd3')  # ANTI_COLLISION
+    )
+    dummy = DummySerial(resp)
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
+    r = MifareReader('/dev/ttyUSB0')
+    assert r.wait_for_card(timeout=1) == '0xD39BC634'
+    assert dummy.timeout is None
+    # Presence check (REQUEST) runs before auto mode is enabled.
+    sent = dummy.written
+    assert sent.index(bytes([Message.SOH, 0, QueryMessage.REQUEST])) < sent.index(
+        bytes([Message.SOH, 0, QueryMessage.AUTO_MODE]))

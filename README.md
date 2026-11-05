@@ -12,6 +12,8 @@
 other GIGA-TMS readers that speak the **GNetPlus®** serial protocol.
 Typed, tested, and its only dependency is `pyserial`.
 
+![Terminal demo: mifarepy prints the reader firmware, waits for a card, then shows its UID and reads block 0 of sector 1](https://raw.githubusercontent.com/SparkDrago05/mifarepy/main/docs/assets/demo.gif)
+
 📖 **Documentation:** <https://sparkdrago05.github.io/mifarepy/>
 
 ## Install
@@ -46,7 +48,7 @@ with MifareReader('/dev/ttyUSB0') as reader:      # Windows: 'COM3'
 | **Authentication** | `authenticate_sector()` with Key A or B, `authenticate_sector_cached()` |
 | **Block I/O** | `read_block()`, `write_block()`, `read_sector()`, `write_sector()` (never touches sector trailers) |
 | **Bulk I/O** | `read_blocks()` / `write_blocks()` across sectors with per-sector `SectorAuth` keys |
-| **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`, using native card operations that are verified by reading back |
+| **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`, with native, verified transfer/restore |
 | **Card layout** | MIFARE Classic 1K and 4K, including the 16-block sectors 32–39; `mifarepy.layout` helpers for block arithmetic |
 | **Reader control** | `ping()`, `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
 | **Developer experience** | Context manager, full type hints (`py.typed`), typed errors with readable NAK codes |

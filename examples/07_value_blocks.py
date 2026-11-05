@@ -2,9 +2,9 @@
 Example 07 — Value blocks: create, increment, decrement, transfer, restore
 ===========================================================================
 MIFARE Classic value blocks store a signed 32-bit integer in a special
-redundant format.  mifarepy's increment/decrement helpers use the card's
-own value operations, check for overflow, and verify the result by reading
-the block back.
+redundant format.  mifarepy's increment/decrement helpers check for
+overflow and write the new value; transfer/restore use the card's own
+value operations and verify the result by reading the block back.
 
 Typical use cases:
   - Prepaid transit / fare cards

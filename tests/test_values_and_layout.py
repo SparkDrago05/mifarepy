@@ -68,8 +68,23 @@ Q = QueryMessage
 
 # --- native value commands ---------------------------------------------------
 
-def test_increment_uses_native_set_value_and_verifies(monkeypatch):
-    r, fake = make_reader(monkeypatch, [value(100), ack(), value(125)])
+@pytest.mark.parametrize('mode', ['auto', 'software'])
+def test_increment_and_decrement_use_read_modify_write(monkeypatch, mode):
+    # SET_VALUE is never sent outside 'native' mode (PGM0487 V1.4R0 firmware
+    # computes it wrongly), so no incorrect value is ever written to the card.
+    r, fake = make_reader(monkeypatch, [value(1000), ack(), value(1250), ack()], value_ops=mode)
+    r.increment_value(0, 250)
+    r.decrement_value(0, 250)
+    assert Q.SET_VALUE not in fake.functions()
+    assert fake.functions() == [Q.READ_VALUE, Q.CREATE_VALUE_BLOCK] * 2
+    assert fake.payloads(Q.CREATE_VALUE_BLOCK) == [
+        b'\x00' + struct.pack('<i', 1250),
+        b'\x00' + struct.pack('<i', 1000),
+    ]
+
+
+def test_native_increment_uses_set_value_and_verifies(monkeypatch):
+    r, fake = make_reader(monkeypatch, [value(100), ack(), value(125)], value_ops='native')
     r.increment_value(1, 25)
     assert fake.functions() == [Q.READ_VALUE, Q.SET_VALUE, Q.READ_VALUE]
     assert fake.payloads(Q.SET_VALUE) == [bytes([1, VALUE_INCREMENT]) + struct.pack('<i', 25)]
@@ -77,8 +92,8 @@ def test_increment_uses_native_set_value_and_verifies(monkeypatch):
     assert r._native_values_ok is True
 
 
-def test_decrement_uses_native_set_value(monkeypatch):
-    r, fake = make_reader(monkeypatch, [value(100), ack(), value(60)])
+def test_native_decrement_uses_set_value(monkeypatch):
+    r, fake = make_reader(monkeypatch, [value(100), ack(), value(60)], value_ops='native')
     r.decrement_value(2, 40)
     assert fake.payloads(Q.SET_VALUE) == [bytes([2, VALUE_DECREMENT]) + struct.pack('<i', 40)]
 
@@ -106,29 +121,29 @@ def test_unsupported_command_falls_back_and_is_remembered(monkeypatch):
     cached = [resp(data=b'\x04\x00'), resp(data=b'\x01\x02\x03\x04'), ack(), ack()]
     responses = (
         auth
-        + [value(10), nak(0xE6)]   # read, native SET_VALUE rejected as unknown command
+        + [value(10), nak(0xE6)]   # read, native RESTORE rejected as unknown command
         + cached                   # re-authenticate with the stored key
         + [ack()]                  # CREATE_VALUE_BLOCK fallback write
-        + [value(15), ack()]       # second increment goes straight to read-modify-write
+        + [value(15), ack()]       # second transfer goes straight to read-modify-write
     )
     r, fake = make_reader(monkeypatch, responses)
     r.authenticate_sector(1, b'\xff' * 6)
-    r.increment_value(0, 5)
+    r.transfer(0, 1)
     assert r._native_values_ok is False
-    assert fake.payloads(Q.CREATE_VALUE_BLOCK)[-1] == b'\x00' + struct.pack('<i', 15)
+    assert fake.payloads(Q.CREATE_VALUE_BLOCK)[-1] == b'\x01' + struct.pack('<i', 10)
     assert Q.AUTHENTICATE_KEY in fake.functions()
 
     before = len(fake.written)
-    r.increment_value(0, 5)
+    r.transfer(0, 1)
     assert fake.functions()[before:] == [Q.READ_VALUE, Q.CREATE_VALUE_BLOCK]
-    assert fake.payloads(Q.CREATE_VALUE_BLOCK)[-1] == b'\x00' + struct.pack('<i', 20)
+    assert fake.payloads(Q.CREATE_VALUE_BLOCK)[-1] == b'\x01' + struct.pack('<i', 15)
 
 
 def test_wrong_native_result_is_corrected(monkeypatch):
-    # Reader accepts SET_VALUE but the card ends up with an unexpected value.
-    r, fake = make_reader(monkeypatch, [value(100), ack(), value(999), ack()])
-    r.increment_value(0, 1)
-    assert fake.payloads(Q.CREATE_VALUE_BLOCK) == [b'\x00' + struct.pack('<i', 101)]
+    # Reader accepts RESTORE/TRANSFER but the destination ends up wrong.
+    r, fake = make_reader(monkeypatch, [value(100), ack(), ack(), value(999), ack()])
+    r.transfer(0, 1)
+    assert fake.payloads(Q.CREATE_VALUE_BLOCK) == [b'\x01' + struct.pack('<i', 100)]
     assert r._native_values_ok is False
 
 
@@ -147,7 +162,7 @@ def test_native_mode_raises_on_wrong_result(monkeypatch):
 def test_fallback_without_known_sector_explains(monkeypatch):
     r, _ = make_reader(monkeypatch, [value(100), nak(0x10)])
     with pytest.raises(RuntimeError, match='authenticate_sector'):
-        r.increment_value(0, 1)
+        r.restore(0)
 
 
 def test_invalid_value_ops(monkeypatch):

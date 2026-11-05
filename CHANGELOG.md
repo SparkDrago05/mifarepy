@@ -4,6 +4,25 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- `increment_value()` / `decrement_value()` no longer send SET_VALUE (`0x26`)
+  in the default `value_ops='auto'` mode; they use read-modify-write again.
+  Tested on a PROMAG PCR310U with firmware `PGM0487 V1.4R0`, SET_VALUE drops
+  bit 7 of each delta byte and loses carries (1000 + 250 gave 866), and some
+  decrements are rejected with NAK `0x06`. In 3.1.0 the wrong value stayed on
+  the card until the read-back check rewrote it. SET_VALUE is still used with
+  `value_ops='native'`. `transfer()` / `restore()` keep using native
+  RESTORE + TRANSFER, which work correctly on that firmware.
+- `wait_for_card()` now honours `timeout`. Before, it blocked forever on a
+  serial port opened without a read timeout (the default) if no card arrived.
+  It also enables auto mode only after checking for a card: on PGM0487
+  V1.4R0 a REQUEST that finds no card stopped insert events, so a card
+  tapped afterwards was never seen.
+  `wait_for_card_async()` no longer truncates fractional timeouts.
+- `get_version()` strips the trailing NUL that PGM0487 firmware appends.
+
 ## [3.1.0] - 2026-11-03
 
 ### Added

@@ -11,7 +11,7 @@ Key facts for correct code:
 - Authenticate before every read/write: `reader.authenticate_sector(sector, key: bytes(6), key_type='A'|'B')`. The factory default key is `bytes.fromhex('FFFFFFFFFFFF')`.
 - Block numbers for `read_block()` / `write_block()` are RELATIVE to the authenticated sector (0-3, or 0-15 for 4K sectors 32-39). Use `mifarepy.layout` to convert to/from absolute block numbers.
 - `read_sector()` / `write_sector()` cover data blocks only and never write the sector trailer. `read_blocks()` / `write_blocks()` work across sectors with `auth={sector: SectorAuth(key=..., key_type='A')}`.
-- Value blocks: `create_value_block()`, `read_value()`, `write_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`. Arithmetic uses native reader commands, verified by reading back, with automatic fallback (`MifareReader(..., value_ops='auto'|'native'|'software')`).
+- Value blocks: `create_value_block()`, `read_value()`, `write_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`. Increment/decrement use read-modify-write; transfer/restore use native RESTORE/TRANSFER, verified by reading back, with automatic fallback. `MifareReader(..., value_ops='native')` also sends SET_VALUE for increment/decrement (wrong on PCR310U firmware PGM0487 V1.4R0); `'software'` uses no native commands.
 - Errors: reader NAKs raise `GNetPlusError` with `.nak_code` (int) and `.code_description` (e.g. 0x04 "Authentication error", 0x1F "No tag in field"); malformed frames raise `InvalidMessage`.
 - Raw commands: `reader.sendmsg(QueryMessage.<NAME>, payload)` then `reader.readmsg()`.
 
