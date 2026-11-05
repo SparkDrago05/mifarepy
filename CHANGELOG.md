@@ -4,6 +4,40 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [3.2.0] - 2026-11-06
+
+Zero-config: find the reader automatically, test without hardware, and get
+errors that say what went wrong and how to fix it.
+
+### Added
+- `MifareReader.auto()` finds a PROMAG reader by its USB-serial chip
+  (Prolific PL2303) and checks it answers before returning it; raises
+  `ReaderNotFoundError` listing the ports it saw. `mifarepy.discovery.find_ports()`
+  lists candidate ports.
+- `mifarepy.simulator`: `SimulatedReader` and `SimulatedCard` (1K/4K) answer
+  GNetPlus commands like a real reader, including keys, value blocks, HALT,
+  RF power and card-arrival events. `MifareReader.simulated()` and
+  `MifareReader.from_serial()` connect to it (or to any serial-like object).
+- pytest plugin with `mifare_card`, `mifare_simulator` and `mifare_reader`
+  fixtures, registered automatically when mifarepy is installed.
+- Specific error classes for reader NAKs, all subclasses of `GNetPlusError`:
+  `NoCardError`, `AuthenticationError`, `NotAuthenticatedError`,
+  `CardReadError`, `CardWriteError`, `ValueBlockError`, `CardTimeoutError`,
+  `ReaderProtocolError`, `ReaderAccessError`. Each has a `hint`; errors from
+  authentication and block access say which sector, key and block.
+- `ReaderConnectionError` (a `RuntimeError`, as before) when a port can't be
+  opened, with a hint for permission, busy and missing-port problems.
+- Frame tracing: every frame is logged, decoded, on the `mifarepy.wire`
+  logger; `enable_wire_trace()` prints it. Card keys are hidden unless
+  `show_keys=True`.
+- Docs page "Testing without hardware".
+
+### Changed
+- `GNetPlusError` messages now end with a `Hint:` line when a hint is known.
+  `raw`, `nak_code` and `code_description` are unchanged.
+- CI measures coverage with `coverage run`, because mifarepy's pytest plugin
+  loads the package before `pytest --cov` starts.
+
 ## [3.1.1] - 2026-11-05
 
 Verified on a PROMAG PCR310U (firmware `PGM0487 V1.4R0`). Upgrade from 3.1.0
@@ -138,6 +172,7 @@ First stable release on PyPI, renamed from `pymifare` to `mifarepy`.
 - Python 3 port of gnetplus: GNetPlus protocol framing and CRC, reading card
   serial numbers over USB or RS-232 serial.
 
+[3.2.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.0...v3.0.1
