@@ -751,3 +751,75 @@ def test_wait_for_card_returns_uid_on_insert_event(monkeypatch):
     sent = dummy.written
     assert sent.index(bytes([Message.SOH, 0, QueryMessage.REQUEST])) < sent.index(
         bytes([Message.SOH, 0, QueryMessage.AUTO_MODE]))
+
+
+# --- wait_for_card_async ---
+
+def test_wait_for_card_async(monkeypatch):
+    import asyncio
+
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(b''))
+    r = MifareReader()
+    monkeypatch.setattr(r, 'wait_for_card', lambda timeout: '0xAABBCCDD')
+    assert asyncio.run(r.wait_for_card_async(timeout=2)) == '0xAABBCCDD'
+
+
+# --- legacy keys= parameters on read_blocks / write_blocks ---
+
+def _reader_without_serial(monkeypatch):
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(b''))
+    return MifareReader()
+
+
+def test_read_blocks_per_sector_keys_and_combine(monkeypatch):
+    r = _reader_without_serial(monkeypatch)
+    authenticated = []
+    monkeypatch.setattr(
+        r, 'authenticate_sector',
+        lambda sector, key, key_type, timeout, flush: authenticated.append(
+            (sector, key, key_type, timeout, flush)
+        ),
+    )
+    monkeypatch.setattr(r, 'read_block', lambda block, raw=False: bytes([block]) * 2)
+    result = r.read_blocks(
+        {1: [0, 1], 2: [0]}, raw=True, combine=True,
+        keys={1: b'\x01' * 6, 2: b'\x02' * 6}, key_types={2: 'B'},
+        timeout={1: 0.5}, flush={2: False},
+    )
+    assert result == b'\x00\x00\x01\x01\x00\x00'
+    assert authenticated == [
+        (1, b'\x01' * 6, 'A', 0.5, True),
+        (2, b'\x02' * 6, 'B', 1.0, False),
+    ]
+
+
+def test_read_blocks_without_keys_skips_authentication(monkeypatch):
+    r = _reader_without_serial(monkeypatch)
+
+    def fail(*args, **kwargs):
+        raise AssertionError('authenticate_sector must not be called without a key')
+
+    monkeypatch.setattr(r, 'authenticate_sector', fail)
+    monkeypatch.setattr(r, 'read_block', lambda block, raw=False: 'ab' * 16)
+    assert r.read_blocks({0: [1]}) == {0: {1: 'ab' * 16}}
+    assert r.read_blocks({0: [1]}, combine=True) == 'ab' * 16
+
+
+def test_write_blocks_legacy_keys_dict_and_sector_specs(monkeypatch):
+    r = _reader_without_serial(monkeypatch)
+    calls = []
+    monkeypatch.setattr(
+        r, 'authenticate_sector',
+        lambda sector, key, key_type, timeout, flush: calls.append(('auth', sector, key)),
+    )
+    monkeypatch.setattr(r, 'write_block', lambda block, data: calls.append(('block', block, data)))
+    monkeypatch.setattr(
+        r, 'write_sector', lambda data, sector=None: calls.append(('sector', data, sector))
+    )
+    r.write_blocks({1: {0: b'\xAA' * 16}, 2: b'\xBB' * 48}, keys=b'\xFF' * 6)
+    assert calls == [
+        ('auth', 1, b'\xFF' * 6),
+        ('block', 0, b'\xAA' * 16),
+        ('auth', 2, b'\xFF' * 6),
+        ('sector', b'\xBB' * 48, 2),
+    ]
