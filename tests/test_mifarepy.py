@@ -713,7 +713,6 @@ def test_write_blocks_auth_param(monkeypatch):
     assert bytes([QueryMessage.WRITE_BLOCK]) in dummy.written
 
 
-<<<<<<< Updated upstream
 def test_get_version_strips_trailing_nul(monkeypatch):
     # PGM0487 V1.4R0 firmware pads its version string with a space and a NUL.
     resp = build_response(0, ResponseMessage.ACK, b'PGM0487 V1.4R0 (Build:110609) \x00')
@@ -752,64 +751,25 @@ def test_wait_for_card_returns_uid_on_insert_event(monkeypatch):
     sent = dummy.written
     assert sent.index(bytes([Message.SOH, 0, QueryMessage.REQUEST])) < sent.index(
         bytes([Message.SOH, 0, QueryMessage.AUTO_MODE]))
-=======
-# --- wait_for_card / wait_for_card_async ---
-
-def _reader_without_serial(monkeypatch):
-    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(b''))
-    return MifareReader()
 
 
-def test_wait_for_card_already_present(monkeypatch):
-    r = _reader_without_serial(monkeypatch)
-    monkeypatch.setattr(r, 'set_auto_mode', lambda: None)
-    monkeypatch.setattr(r, 'get_uid', lambda: '0xAABBCCDD')
-    assert r.wait_for_card(timeout=1) == '0xAABBCCDD'
-
-
-def test_wait_for_card_waits_for_insert_event(monkeypatch):
-    r = _reader_without_serial(monkeypatch)
-    monkeypatch.setattr(r, 'set_auto_mode', lambda: None)
-    uids = iter([GNetPlusError('no card'), '0x01020304'])
-
-    def fake_get_uid():
-        value = next(uids)
-        if isinstance(value, Exception):
-            raise value
-        return value
-
-    unrelated = ResponseMessage(0, ResponseMessage.EVN, b'\x00')
-    inserted = ResponseMessage(0, ResponseMessage.EVN, ResponseMessage.EVN_CARD_IN)
-    events = iter([unrelated, inserted])
-    monkeypatch.setattr(r, 'get_uid', fake_get_uid)
-    monkeypatch.setattr(r, 'readmsg', lambda: next(events))
-    monkeypatch.setattr('mifarepy.reader.time.sleep', lambda _: None)
-    assert r.wait_for_card(timeout=5) == '0x01020304'
-
-
-def test_wait_for_card_timeout(monkeypatch):
-    r = _reader_without_serial(monkeypatch)
-    monkeypatch.setattr(r, 'set_auto_mode', lambda: None)
-
-    def no_card():
-        raise GNetPlusError('no card')
-
-    monkeypatch.setattr(r, 'get_uid', no_card)
-    monkeypatch.setattr(r, 'readmsg', lambda: ResponseMessage(0, ResponseMessage.ACK, b''))
-    monkeypatch.setattr('mifarepy.reader.time.sleep', lambda _: None)
-    with pytest.raises(TimeoutError):
-        r.wait_for_card(timeout=0)
-
+# --- wait_for_card_async ---
 
 def test_wait_for_card_async(monkeypatch):
     import asyncio
 
-    r = _reader_without_serial(monkeypatch)
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(b''))
+    r = MifareReader()
     monkeypatch.setattr(r, 'wait_for_card', lambda timeout: '0xAABBCCDD')
     assert asyncio.run(r.wait_for_card_async(timeout=2)) == '0xAABBCCDD'
 
 
 # --- legacy keys= parameters on read_blocks / write_blocks ---
+
+def _reader_without_serial(monkeypatch):
+    monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: DummySerial(b''))
+    return MifareReader()
+
 
 def test_read_blocks_per_sector_keys_and_combine(monkeypatch):
     r = _reader_without_serial(monkeypatch)
@@ -821,10 +781,10 @@ def test_read_blocks_per_sector_keys_and_combine(monkeypatch):
         ),
     )
     monkeypatch.setattr(r, 'read_block', lambda block, raw=False: bytes([block]) * 2)
-    keys = {1: b'\x01' * 6, 2: b'\x02' * 6}
     result = r.read_blocks(
         {1: [0, 1], 2: [0]}, raw=True, combine=True,
-        keys=keys, key_types={2: 'B'}, timeout={1: 0.5}, flush={2: False},
+        keys={1: b'\x01' * 6, 2: b'\x02' * 6}, key_types={2: 'B'},
+        timeout={1: 0.5}, flush={2: False},
     )
     assert result == b'\x00\x00\x01\x01\x00\x00'
     assert authenticated == [
@@ -853,12 +813,13 @@ def test_write_blocks_legacy_keys_dict_and_sector_specs(monkeypatch):
         lambda sector, key, key_type, timeout, flush: calls.append(('auth', sector, key)),
     )
     monkeypatch.setattr(r, 'write_block', lambda block, data: calls.append(('block', block, data)))
-    monkeypatch.setattr(r, 'write_sector', lambda data: calls.append(('sector', data)))
+    monkeypatch.setattr(
+        r, 'write_sector', lambda data, sector=None: calls.append(('sector', data, sector))
+    )
     r.write_blocks({1: {0: b'\xAA' * 16}, 2: b'\xBB' * 48}, keys=b'\xFF' * 6)
     assert calls == [
         ('auth', 1, b'\xFF' * 6),
         ('block', 0, b'\xAA' * 16),
         ('auth', 2, b'\xFF' * 6),
-        ('sector', b'\xBB' * 48),
+        ('sector', b'\xBB' * 48, 2),
     ]
->>>>>>> Stashed changes
