@@ -334,9 +334,15 @@ def write_card(
 
     Returns:
         The sectors that could not be opened with any key (not written).
+
+    Raises:
+        ValueError: A sector in *sectors* is not in the dump.
     """
     skipped = []
     targets = list(sectors) if sectors is not None else list(range(dump.sectors))
+    for sector in targets:
+        if not 0 <= sector < dump.sectors:
+            raise ValueError(f'sector {sector} is not in the {dump.size} dump (0-{dump.sectors - 1})')
     for n, sector in enumerate(targets):
         data_blocks: list[tuple[int, bytes]] = []
         for b in layout.data_blocks(sector):

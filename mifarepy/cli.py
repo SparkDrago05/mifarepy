@@ -179,6 +179,8 @@ def cmd_read(reader: MifareReader, args: argparse.Namespace) -> int:
     for sector in sectors:
         if not 0 <= sector < count:
             raise CliError(f'sector {sector} does not exist on a {size} card (0-{count - 1})')
+        if args.block is not None and not 0 <= args.block < layout.blocks_in_sector(sector):
+            raise CliError(f'sector {sector} has blocks 0-{layout.trailer_block(sector)}')
     records = []
     for sector in sectors:
         key_type = _open_sector(reader, sector, keys, args.key_type)
@@ -219,6 +221,8 @@ def cmd_write(reader: MifareReader, args: argparse.Namespace) -> int:
     sector, block = args.sector, args.block
     if not 0 <= sector < layout.SECTORS_4K:
         raise CliError('sector must be 0-39')
+    if block < 0:
+        raise CliError(f'sector {sector} has data blocks 0-{layout.trailer_block(sector) - 1}')
     if layout.is_trailer(sector, block):
         raise CliError(f'Block {block} is the trailer of sector {sector} (keys and access bits). '
                        'The CLI never writes trailers: a mistake there can lock the sector for good.')
@@ -267,6 +271,9 @@ def cmd_restore(reader: MifareReader, args: argparse.Namespace) -> int:
         dump = CardDump.load(args.file)
     except (OSError, ValueError, KeyError) as exc:
         raise CliError(f'Could not read {args.file}: {exc}') from None
+    for sector in args.sectors or []:
+        if not 0 <= sector < dump.sectors:
+            raise CliError(f'sector {sector} is not in the {dump.size} dump (0-{dump.sectors - 1})')
     uid = reader.get_uid()
     target = f'card {uid}' + ('' if uid == dump.uid else f' (the dump is from {dump.uid})')
     _confirm(args, f'Write the data blocks of {args.file} to {target}? '

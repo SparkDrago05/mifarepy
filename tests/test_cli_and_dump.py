@@ -179,6 +179,9 @@ def test_cli_read_wrong_key_and_bad_sector(run):
     assert code == 0
     code, _, err = run('read', '16')
     assert code == 1 and 'does not exist' in err
+    for block in ('4', '-1'):
+        code, out, err = run('read', '1', '--block', block)
+        assert code == 1 and 'sector 1 has blocks 0-3' in err and out == ''
 
 
 def test_cli_write(run):
@@ -197,6 +200,7 @@ def test_cli_write(run):
     (['write', '1', '1', '-y'], 'DATA'),
     (['write', '1', '1', '--text', 'x' * 17, '-y'], '16'),
     (['write', '1', '7', '00' * 16, '-y'], 'data blocks 0-2'),
+    (['write', '1', '-1', '00' * 16, '-y'], 'data blocks 0-2'),
     (['write', '1', '1', '00' * 16, '-y', '--key', 'FF'], '12 hex'),
     (['write', '1', '1', '00' * 16, '-y', '--key', 'XYZ'], 'not hex'),
 ])
@@ -245,6 +249,15 @@ def test_cli_dump_partial_and_bad_files(run, tmp_path):
     assert code == 3 and json.loads(out)['skipped_sectors'] == [5]
     code, out, _ = run('restore', str(tmp_path / 'c.mct'), '-y', '--sector', '3')
     assert code == 0                                           # sector 3 is empty in the dump
+    for sector in ('16', '-1'):
+        code, _, err = run('restore', str(tmp_path / 'c.mct'), '-y', '--sector', sector)
+        assert code == 1 and 'not in the 1K dump (0-15)' in err
+
+
+def test_write_card_rejects_sector_outside_dump():
+    dump = read_card(MifareReader.simulated(filled_card()))
+    with pytest.raises(ValueError, match='not in the 1K dump'):
+        write_card(MifareReader.simulated(SimulatedCard()), dump, sectors=[20])
 
 
 def test_cli_watch(run, monkeypatch):
