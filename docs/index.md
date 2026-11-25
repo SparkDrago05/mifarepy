@@ -78,6 +78,15 @@ with MifareReader.auto() as reader:      # or MifareReader('/dev/ttyUSB0')
 
     [:octicons-arrow-right-24: Value blocks](usage.md#value-blocks)
 
+-   :material-console:{ .lg .middle } __Command line__
+
+    ---
+
+    `mifarepy watch`, `read`, `write`, `dump` and `restore`, straight
+    from your terminal. Dumps work with Proxmark3 and MIFARE Classic Tool.
+
+    [:octicons-arrow-right-24: Command line](cli.md)
+
 -   :material-lightning-bolt-outline:{ .lg .middle } __Events & async__
 
     ---

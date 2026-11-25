@@ -100,6 +100,26 @@ Reader NAKs raise a subclass of `GNetPlusError`; see
     options:
       heading_level: 3
 
+## Dumps
+
+See [Command line](cli.md#dump) for the `dump` and `restore` commands built on these.
+
+::: mifarepy.dump.CardDump
+    options:
+      heading_level: 3
+
+::: mifarepy.dump.read_card
+    options:
+      heading_level: 3
+
+::: mifarepy.dump.write_card
+    options:
+      heading_level: 3
+
+::: mifarepy.dump.detect_size
+    options:
+      heading_level: 3
+
 ## Finding readers
 
 ::: mifarepy.discovery

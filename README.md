@@ -24,6 +24,19 @@ pip install mifarepy
 
 Requires Python 3.9 or newer. Works on Linux (including Raspberry Pi), Windows and macOS.
 
+## Command line
+
+```bash
+mifarepy info                 # reader, firmware and the card on it
+mifarepy watch                # print each card as it is tapped
+mifarepy read 1               # show sector 1
+mifarepy dump card.json       # save the whole card (.json, .bin/.mfd, .mct)
+mifarepy restore card.json    # write it back, or to another card
+```
+
+Add `--simulate` to try any command without a reader. See the
+[command-line guide](https://sparkdrago05.github.io/mifarepy/latest/cli/).
+
 ## Quick start
 
 ```python
@@ -51,6 +64,7 @@ with MifareReader.auto() as reader:     # or MifareReader('/dev/ttyUSB0') / ('CO
 | **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`, with native, verified transfer/restore |
 | **Card layout** | MIFARE Classic 1K and 4K, including the 16-block sectors 32–39; `mifarepy.layout` helpers for block arithmetic |
 | **Reader control** | `ping()`, `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
+| **Command line** | `mifarepy info / scan / watch / read / write / dump / restore`; dumps in JSON, raw `.bin`/`.mfd` and MIFARE Classic Tool `.mct` |
 | **Zero-config** | `MifareReader.auto()` finds the reader; errors name the problem and suggest a fix (`AuthenticationError`, `NoCardError`, …) |
 | **Testing without hardware** | Built-in simulated reader and cards, plus pytest fixtures (`mifare_reader`, `mifare_card`) |
 | **Debugging** | `enable_wire_trace()` prints every GNetPlus frame, decoded, with keys hidden |
