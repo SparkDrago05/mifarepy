@@ -29,7 +29,9 @@ that reader.
   `ReaderProtocolError`, `ReaderAccessError`. Each has a `hint`; errors from
   authentication and block access say which sector, key and block.
 - `ReaderConnectionError` (a `RuntimeError`, as before) when a port can't be
-  opened, with a hint for permission, busy and missing-port problems. Opening
+  opened, with a hint for permission, busy and missing-port problems. On
+  Linux the permission hint checks whether you are already in the port's group
+  and, if so, points at the port's mode instead of `usermod`. Opening
   with `exclusive=True` while another program holds the port gives the
   "in use" hint.
 - Frame tracing: every frame is logged, decoded, on the `mifarepy.wire`

@@ -3,6 +3,8 @@
 import errno
 import io
 import logging
+import os
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -226,3 +228,23 @@ def test_from_serial_repr():
     sim = SimulatedReader()
     reader = MifareReader.from_serial(sim)
     assert "port='simulated'" in repr(reader)
+
+
+@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='Linux permission hints')
+@pytest.mark.parametrize('in_group, mode, expected', [
+    (True, 0o20600, 'sudo chmod 660 /dev/ttyUSB0'),      # in the group, but mode 600
+    (False, 0o20660, 'usermod -aG'),                     # not in the group
+])
+def test_permission_hint_checks_group_and_mode(monkeypatch, in_group, mode, expected):
+    import grp
+    gid = os.getgid() + 12345
+    monkeypatch.setattr(os, 'stat', lambda p: SimpleNamespace(st_gid=gid, st_mode=mode))
+    monkeypatch.setattr(os, 'getgroups', lambda: [gid] if in_group else [])
+    monkeypatch.setattr(grp, 'getgrgid', lambda g: SimpleNamespace(gr_name='dialout'))
+
+    def boom(*args, **kwargs):
+        raise serial.SerialException(errno.EACCES, 'Permission denied')
+    monkeypatch.setattr(serial, 'Serial', boom)
+    with pytest.raises(ReaderConnectionError) as info:
+        MifareReader('/dev/ttyUSB0')
+    assert expected in info.value.hint

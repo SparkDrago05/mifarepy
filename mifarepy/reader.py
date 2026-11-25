@@ -25,6 +25,8 @@ with MifareReader('/dev/ttyUSB0') as reader:
 import asyncio
 import errno
 import logging
+import os
+import stat
 import struct
 import sys
 import time
@@ -59,14 +61,30 @@ _UNSUPPORTED_COMMAND_NAKS = frozenset({0xE1, 0xE6})
 ValueOps = Literal['auto', 'native', 'software']
 
 
+def _linux_permission_hint(port: str) -> str:
+    """Permission hint for Linux: join the port's group, or fix its mode if already a member."""
+    group = 'dialout'
+    try:
+        st = os.stat(port)
+        import grp
+        group = grp.getgrgid(st.st_gid).gr_name
+        if st.st_gid in os.getgroups() and st.st_mode & 0o060 != 0o060:
+            return (f'Permission denied. You are in the {group} group, but the port does not '
+                    f'allow group access (mode {stat.S_IMODE(st.st_mode):o}). Unplug and replug '
+                    f'the reader, or run: sudo chmod 660 {port}')
+    except (OSError, KeyError, ImportError):
+        pass
+    return (f'Permission denied. Add yourself to the {group} group '
+            f'(sudo usermod -aG {group} "$USER"), then log out and back in.')
+
+
 def _open_hint(port: str, exc: Exception) -> str:
     """Suggest a fix for a serial port that failed to open."""
     code = getattr(exc, 'errno', None)
     text = str(exc).lower()
     if code in (errno.EACCES, errno.EPERM) or 'permission' in text or 'access is denied' in text:
         if sys.platform.startswith('linux'):
-            return ('Permission denied. Add yourself to the dialout group '
-                    '(sudo usermod -aG dialout "$USER"), then log out and back in.')
+            return _linux_permission_hint(port)
         return 'Permission denied. Close other programs using the port and try again.'
     # EAGAIN: pyserial's exclusive=True found another process holding the lock.
     if code in (errno.EBUSY, errno.EAGAIN) or 'busy' in text or 'exclusively lock' in text:
