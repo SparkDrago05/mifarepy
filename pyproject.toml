@@ -35,6 +35,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+[project.scripts]
+mifarepy = "mifarepy.cli:main"
+
 [project.entry-points.pytest11]
 mifarepy = "mifarepy.testing"
 
