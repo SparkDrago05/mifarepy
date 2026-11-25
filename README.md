@@ -12,7 +12,7 @@
 other GIGA-TMS readers that speak the **GNetPlus®** serial protocol.
 Typed, tested, and its only dependency is `pyserial`.
 
-![Terminal demo: mifarepy prints the reader firmware, waits for a card, then shows its UID and reads block 0 of sector 1](https://raw.githubusercontent.com/SparkDrago05/mifarepy/main/docs/assets/demo.gif)
+![Terminal demo: mifarepy watch prints a card UID each time a card is tapped, then mifarepy read shows block 0 of sector 1](https://raw.githubusercontent.com/SparkDrago05/mifarepy/main/docs/assets/demo.gif)
 
 📖 **Documentation:** <https://sparkdrago05.github.io/mifarepy/>
 

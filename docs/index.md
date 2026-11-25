@@ -18,7 +18,7 @@ tested and dependency-light: the only dependency is `pyserial`.
 
 </div>
 
-![Terminal demo: mifarepy prints the reader firmware, waits for a card, then shows its UID and reads block 0 of sector 1](assets/demo.gif)
+![Terminal demo: mifarepy watch prints a card UID each time a card is tapped, then mifarepy read shows block 0 of sector 1](assets/demo.gif)
 
 ```bash
 pip install mifarepy

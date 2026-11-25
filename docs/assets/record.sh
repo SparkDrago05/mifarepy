@@ -4,39 +4,50 @@
 # Needs asciinema (pipx install asciinema) and agg
 # (cargo install --git https://github.com/asciinema/agg).
 #
-#   docs/assets/record.sh [port]
+#   bash docs/assets/record.sh
 #
-# Remove the card first, start this script, then tap the card when the demo
-# says "Waiting for a card...".
+# The demo runs `mifarepy watch --count 2`, then `mifarepy read 1 --block 0`.
+# Before starting, write some text to the card that ends the demo:
+#
+#   mifarepy write 1 0 --text "Hello, mifarepy!"
+#
+# Start with no card on the reader. When "Waiting for cards" appears, tap one
+# card and lift it, then put the card with the text on the reader and leave it
+# there. MIFAREPY sets the command to run (default: mifarepy on PATH).
 set -euo pipefail
 
-PORT="${1:-/dev/ttyUSB0}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
-PYTHON="${PYTHON:-python}"
+MIFAREPY="${MIFAREPY:-mifarepy}"
 
-if [[ "${MIFAREPY_DEMO_INNER:-}" == 1 ]]; then
-    # Runs inside the recording: fake-type the command, then run it for real.
-    cmd="python demo.py $PORT"
+type_and_run() {
+    # Fake-type "mifarepy ARGS", then run it for real.
+    local shown="mifarepy $*"
     printf '\033[1;32m$\033[0m '
-    for ((i = 0; i < ${#cmd}; i++)); do
-        printf '%s' "${cmd:i:1}"
+    for ((i = 0; i < ${#shown}; i++)); do
+        printf '%s' "${shown:i:1}"
         sleep 0.04
     done
     sleep 0.4
     printf '\n'
-    "$PYTHON" "$HERE/demo.py" "$PORT"
+    "$MIFAREPY" "$@"
+}
+
+if [[ "${MIFAREPY_DEMO_INNER:-}" == 1 ]]; then
+    type_and_run watch --count 2
+    sleep 1
+    type_and_run read 1 --block 0
     sleep 2
     exit 0
 fi
 
 CAST="$(mktemp --suffix=.cast)"
-MIFAREPY_DEMO_INNER=1 asciinema rec --overwrite --quiet --cols 64 --rows 8 \
-    --idle-time-limit 1.5 --command "$0 $PORT" "$CAST"
+MIFAREPY_DEMO_INNER=1 asciinema rec --overwrite --quiet --cols 64 --rows 9 \
+    --idle-time-limit 1.5 --command "bash $0" "$CAST"
 
-if ! grep -q 'Card UID:' "$CAST"; then
+if ! grep -q 'Sector 1 (Key' "$CAST"; then
     echo "Demo did not read a card; not writing the GIF ($CAST kept)." >&2
     exit 1
 fi
-agg --font-size 20 --theme monokai --last-frame-duration 3 "$CAST" "$HERE/demo.gif"
+agg --font-size 20 --theme monokai --last-frame-duration 4 "$CAST" "$HERE/demo.gif"
 rm -f "$CAST"
 echo "Wrote $HERE/demo.gif"
