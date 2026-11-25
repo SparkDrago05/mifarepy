@@ -42,8 +42,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         include:
+          # ubuntu-latest (26.04) has no Python 3.9 builds; 24.04 still does.
+          - os: ubuntu-24.04
+            python-version: "3.9"
           # Serial-port names and paths differ per OS; cover the oldest and newest Python there.
           - os: windows-latest
             python-version: "3.9"
