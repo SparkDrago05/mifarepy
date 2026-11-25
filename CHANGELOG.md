@@ -4,6 +4,28 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [3.3.0] - 2026-11-25
+
+A command-line tool, and whole-card dump and restore.
+
+### Added
+- `mifarepy` command (also `python -m mifarepy`): `info`, `scan`, `watch`,
+  `read`, `write`, `dump`, `restore`. Finds the reader automatically; options
+  `--port`, `--simulate` (no hardware), `--json`, `--trace`, `--key` (repeatable),
+  `--key-type`. `write` and `restore` ask before writing (`--yes` to skip),
+  verify what they write, and never write sector trailers or the manufacturer
+  block.
+- `mifarepy.dump`: `read_card()` reads every sector the given keys open into a
+  `CardDump`; `write_card()` writes the data blocks back (to the same or another
+  card). Dumps save and load as mifarepy JSON, raw `.bin`/`.mfd` (Proxmark3,
+  libnfc) and `.mct` (MIFARE Classic Tool). `detect_size()` tells 1K from 4K.
+- `MifareReader.key_load_delay` (default 0.05 s): the pause after SAVE_KEY.
+  Simulated readers set it to 0, which makes simulator tests much faster.
+
+### Changed
+- The simulator reports SAK `0x18` for 4K cards (the standard value) instead
+  of `0x20`.
+
 ## [3.2.0] - 2026-11-25
 
 Zero-config: find the reader automatically, test without hardware, and get
@@ -191,6 +213,7 @@ First stable release on PyPI, renamed from `pymifare` to `mifarepy`.
 - Python 3 port of gnetplus: GNetPlus protocol framing and CRC, reading card
   serial numbers over USB or RS-232 serial.
 
+[3.3.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.0.1...v3.1.0

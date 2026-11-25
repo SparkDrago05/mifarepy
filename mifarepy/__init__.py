@@ -36,7 +36,7 @@ from .protocol import (
 from .reader import MifareReader
 from .trace import disable_wire_trace, enable_wire_trace
 
-__version__ = '3.2.0'
+__version__ = '3.3.0'
 
 __all__ = [
     'AuthenticationError',
