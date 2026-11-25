@@ -4,7 +4,7 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [3.2.0] - 2026-11-06
+## [3.2.0] - 2026-11-25
 
 Zero-config: find the reader automatically, test without hardware, and get
 errors that say what went wrong and how to fix it. Checked on a PROMAG
