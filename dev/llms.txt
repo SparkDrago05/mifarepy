@@ -2,12 +2,13 @@
 
 > Typed Python library (Python 3.9+, LGPL-3.0-or-later, depends only on pyserial) for MIFARE Classic 1K/4K cards on GIGA-TMS / PROMAG readers (PCR310U, MF5, MF10) that speak the GNetPlus serial protocol at 19200 baud 8N1.
 
-Install with `pip install mifarepy`. Import everything from the package root: `from mifarepy import MifareReader, SectorAuth, CardInfo, GNetPlusError, InvalidMessage, layout`.
+Install with `pip install mifarepy`. It also installs a `mifarepy` command (`info`, `scan`, `watch`, `read`, `write`, `dump`, `restore`; `--simulate` needs no hardware). Import everything from the package root: `from mifarepy import MifareReader, SectorAuth, CardInfo, GNetPlusError, InvalidMessage, layout`.
 
 Key facts for correct code:
 
 - Use `with MifareReader.auto() as reader:` to find the reader, or `MifareReader('/dev/ttyUSB0')` (Windows: `'COM3'`). The context manager closes the port and turns auto mode off.
 - Tests without hardware: `MifareReader.simulated(SimulatedCard(...))` (`from mifarepy.simulator import SimulatedCard`), or the pytest fixtures `mifare_reader`, `mifare_card`, `mifare_simulator` that mifarepy registers automatically.
+- Whole-card backup: `from mifarepy.dump import read_card, write_card, CardDump`; `read_card(reader, keys=[...]).save('card.json')` (.json, .bin/.mfd, .mct); `write_card()` never writes trailers or block 0.
 - Debugging: `mifarepy.enable_wire_trace()` logs every frame (keys hidden) on the `mifarepy.wire` logger.
 - Card detection: `get_uid()` returns `'0xAABBCCDD'`; `get_uid_int()`; `scan_tag()` returns `CardInfo`; `is_card_present()`; `wait_for_card(timeout)`; `await wait_for_card_async(timeout)`. `get_sn()` is deprecated.
 - Authenticate before every read/write: `reader.authenticate_sector(sector, key: bytes(6), key_type='A'|'B')`. The factory default key is `bytes.fromhex('FFFFFFFFFFFF')`.
@@ -23,6 +24,7 @@ Key facts for correct code:
 - [API reference](https://sparkdrago05.github.io/mifarepy/latest/api/): generated from docstrings
 - [MIFARE Classic primer](https://sparkdrago05.github.io/mifarepy/latest/mifare-classic/): layout, keys, access bits, value blocks
 - [GNetPlus protocol reference](https://sparkdrago05.github.io/mifarepy/latest/protocol/): frames, CRC, command and error-code tables
+- [Command line](https://sparkdrago05.github.io/mifarepy/latest/cli/): the mifarepy command
 - [Testing without hardware](https://sparkdrago05.github.io/mifarepy/latest/testing/): simulator and pytest fixtures
 - [Hardware & setup](https://sparkdrago05.github.io/mifarepy/latest/hardware/): ports, permissions, troubleshooting
 
