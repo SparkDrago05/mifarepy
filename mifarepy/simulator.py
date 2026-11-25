@@ -144,7 +144,7 @@ class SimulatedCard:
 
     @property
     def memory_size(self) -> bytes:
-        return b'\x08' if self.size == '1K' else b'\x20'
+        return b'\x08' if self.size == '1K' else b'\x18'
 
 
 def _encode_value(value: int, address: int) -> bytes:

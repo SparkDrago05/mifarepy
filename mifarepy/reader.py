@@ -159,6 +159,8 @@ class MifareReader:
         # Sector and key type of the most recent successful authentication.
         self._auth_sector: Optional[int] = None
         self._auth_key_type: Literal['A', 'B'] = 'A'
+        #: Seconds to wait after SAVE_KEY for the reader to store the key.
+        self.key_load_delay: float = 0.05
 
     # ------------------------------------------------------------------
     # Other ways to connect
@@ -213,7 +215,9 @@ class MifareReader:
 
         if card is None and not empty:
             card = SimulatedCard()
-        return cls.from_serial(SimulatedReader(card), **kwargs)
+        reader = cls.from_serial(SimulatedReader(card), **kwargs)
+        reader.key_load_delay = 0.0   # the simulator stores keys instantly
+        return reader
 
     @classmethod
     def auto(
@@ -827,7 +831,8 @@ class MifareReader:
             except AttributeError:
                 pass
         # Brief pause to allow reader to complete internal key load
-        time.sleep(0.05)
+        if self.key_load_delay:
+            time.sleep(self.key_load_delay)
 
         orig_timeout = getattr(self.serial, 'timeout', None)
         self.serial.timeout = timeout

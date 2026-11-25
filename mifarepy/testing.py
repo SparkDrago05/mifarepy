@@ -59,5 +59,6 @@ def mifare_simulator(mifare_card: SimulatedCard) -> SimulatedReader:
 def mifare_reader(mifare_simulator: SimulatedReader) -> Iterator[MifareReader]:
     """A `MifareReader` connected to ``mifare_simulator``; closed after the test."""
     reader = MifareReader.from_serial(mifare_simulator)
+    reader.key_load_delay = 0.0
     yield reader
     reader.close()
