@@ -54,14 +54,21 @@ DEFAULT_KEY = b'\xff' * 6
 TRANSPORT_ACCESS = bytes.fromhex('FF078069')  # access bits + GPB of a new card
 KEY_A, KEY_B = 0x60, 0x61
 
-# NAK codes used by the simulator (vendor error-code table).
-NAK_AUTH = 0x04
-NAK_NOT_AUTH = 0x0A
+# NAK codes used by the simulator, as returned by a PCR310U with firmware
+# PGM0487 V1.4R0 (checked on hardware).
+NAK_AUTH = 0x09            # wrong key
+NAK_NOT_AUTH = 0x0A        # write without authentication
+NAK_BAD_DATA = 0x0B        # malformed AUTHENTICATE_KEY payload
+NAK_NOT_AUTH_READ = 0x0C   # read without authentication
 NAK_TRANSFER = 0x0E
 NAK_READ = 0x12
 NAK_NO_TAG = 0x1F
 NAK_PARAM = 0x27
 NAK_UNKNOWN = 0xE6
+NAK_NOT_ULTRALIGHT = 0xEE  # GET_SECOND_SN on a MIFARE Classic card
+
+# Most commands are acknowledged with a single 00 byte.
+OK = b'\x00'
 
 
 class SimulatedCard:
@@ -192,10 +199,14 @@ class SimulatedReader:
         self._pending: list[bytes] = []   # responses not yet "arrived"
         self._buffer = b''                # responses available to read()
         self._cond = threading.Condition()
+        # Keys saved with SAVE_KEY, one per (key type, sector). Like the real
+        # reader, every slot starts as FFFFFFFFFFFF.
         self._keys: dict[tuple[int, int], bytes] = {}
-        self._last_key: dict[int, bytes] = {}  # key type -> last key loaded
         self._auth: Optional[tuple[int, int]] = None   # (sector, key type)
         self._selected = False
+        # A failed authentication drops the card to IDLE: block commands then
+        # get "no tag" until the next REQUEST.
+        self._idle = False
         self._transfer_buffer: Optional[int] = None
 
     # -- test controls ----------------------------------------------------
@@ -206,6 +217,7 @@ class SimulatedReader:
             self.card = card
             card.halted = False
             self._deselect()
+            self._idle = False
             if self.auto_mode:
                 self._pending.append(bytes(ResponseMessage(0, ResponseMessage.EVN, b'I')))
             self._cond.notify_all()
@@ -287,9 +299,13 @@ class SimulatedReader:
         self._selected = False
         self._auth = None
 
-    def _block(self, rel: int) -> int:
+    def _block(self, rel: int, read: bool = False) -> int:
+        if self._idle:
+            raise _Nak(NAK_NO_TAG)
         if self._auth is None:
-            raise _Nak(NAK_NOT_AUTH)
+            self._deselect()
+            self._idle = True      # the real reader also drops the card here
+            raise _Nak(NAK_NOT_AUTH_READ if read else NAK_NOT_AUTH)
         sector = self._auth[0]
         if not 0 <= rel < layout.blocks_in_sector(sector):
             raise _Nak(NAK_PARAM)
@@ -304,23 +320,20 @@ class SimulatedReader:
         if f == Q.ECHO:
             return d, []
         if f in (Q.AUTO_MODE, Q.ENABLE_AUTO_MODE):
+            # A card already in the field sends no event; only a new arrival does.
             self.auto_mode = bool(d[:1] == b'\x01')
-            extra = []
-            if self.auto_mode and self.card is not None and self.rf_on:
-                extra.append(bytes(ResponseMessage(0, ResponseMessage.EVN, b'I')))
-            return bytes([int(self.auto_mode)]), extra
+            return bytes([int(self.auto_mode)]), []
         if f == Q.RF_POWER_ONOFF:
             self.rf_on = d[:1] == b'\x01'
             self._deselect()
             if self.card is not None:
                 self.card.halted = False
-            return b'', []
+            return OK, []
         if f == Q.SAVE_KEY:
             if len(d) != 8 or d[0] not in (KEY_A, KEY_B):
                 raise _Nak(NAK_PARAM)
             self._keys[(d[0], d[1])] = d[2:8]
-            self._last_key[d[0]] = d[2:8]
-            return b'', []
+            return OK, []
 
         card = self._card()
         if f in (Q.REQUEST, Q.REQUEST_ALL):
@@ -328,11 +341,12 @@ class SimulatedReader:
                 raise _Nak(NAK_NO_TAG)
             card.halted = False
             self._deselect()
+            self._idle = False
             return card.atqa, []
         if f == Q.ANTI_COLLISION:
             return card.uid, []
         if f == Q.SELECT_CARD:
-            if d != card.uid:
+            if d != card.uid or self._idle:
                 raise _Nak(NAK_NO_TAG)
             self._selected = True
             self._auth = None
@@ -340,14 +354,14 @@ class SimulatedReader:
         if f == Q.HALT:
             card.halted = True
             self._deselect()
-            return b'', []
+            return OK, []
         if f == Q.GET_SECOND_SN:
-            raise _Nak(NAK_PARAM)  # Ultralight only
+            raise _Nak(NAK_NOT_ULTRALIGHT)  # Ultralight only
         if f in (Q.AUTHENTICATE, Q.AUTHENTICATE_KEY):
             return self._authenticate(card, f, d), []
 
         if f == Q.READ_BLOCK:
-            blk = self._block(d[0])
+            blk = self._block(d[0], read=True)
             data = bytes(card.memory[blk])
             if layout.sector_of(blk)[1] == layout.trailer_block(layout.sector_of(blk)[0]):
                 data = b'\x00' * 6 + data[6:]   # Key A is never readable
@@ -359,9 +373,9 @@ class SimulatedReader:
             if blk == 0:
                 raise _Nak(0x0F)  # manufacturer block is read-only
             card.memory[blk][:] = d[1:]
-            return b'', []
+            return OK, []
         if f == Q.READ_VALUE:
-            blk = self._block(d[0])
+            blk = self._block(d[0], read=True)
             value = _decode_value(bytes(card.memory[blk]))
             if value is None:
                 raise _Nak(NAK_READ)
@@ -370,7 +384,7 @@ class SimulatedReader:
             blk = self._block(d[0])
             value = struct.unpack('<i', d[1:5])[0] if len(d) >= 5 else 0
             card.memory[blk][:] = _encode_value(value, blk)
-            return b'', []
+            return OK, []
         if f in (Q.SET_VALUE, Q.SET_VALUEEX):
             blk = self._block(d[0])
             current = _decode_value(bytes(card.memory[blk]))
@@ -382,39 +396,42 @@ class SimulatedReader:
                 card.memory[blk][:] = _encode_value(new, blk)
             else:
                 self._transfer_buffer = new
-            return b'', []
+            return OK, []
         if f == Q.RESTORE:
             blk = self._block(d[0])
             value = _decode_value(bytes(card.memory[blk]))
             if value is None:
                 raise _Nak(NAK_TRANSFER)
             self._transfer_buffer = value
-            return b'', []
+            return OK, []
         if f == Q.TRANSFER:
             blk = self._block(d[0])
             if self._transfer_buffer is None:
                 raise _Nak(NAK_TRANSFER)
             card.memory[blk][:] = _encode_value(self._transfer_buffer, blk)
-            return b'', []
+            return OK, []
         raise _Nak(NAK_UNKNOWN)
 
     def _authenticate(self, card: SimulatedCard, f: int, d: bytes) -> bytes:
+        bad = NAK_BAD_DATA if f == QueryMessage.AUTHENTICATE_KEY else NAK_PARAM
         if len(d) < 2 or d[0] not in (KEY_A, KEY_B):
-            raise _Nak(NAK_PARAM)
+            raise _Nak(bad)
         key_type, sector = d[0], d[1]
         if sector >= card.sectors:
-            raise _Nak(NAK_PARAM)
+            raise _Nak(bad)
         if not self._selected:
             raise _Nak(NAK_AUTH)
         if f == QueryMessage.AUTHENTICATE_KEY:
-            # With a key in the payload use it; otherwise re-use the last loaded key.
-            key = d[2:8] if len(d) == 8 else self._last_key.get(key_type)
+            # The key travels in the payload; without one the reader answers
+            # "key error" rather than using a stored key.
+            key: Optional[bytes] = d[2:8] if len(d) == 8 else None
         else:
-            key = self._keys.get((key_type, sector))
+            key = self._keys.get((key_type, sector), DEFAULT_KEY)
         key_a, key_b = card.keys(sector)
         expected = key_a if key_type == KEY_A else key_b
         if key is None or key != expected:
-            self._deselect()   # a failed authentication drops the card to IDLE
+            self._deselect()
+            self._idle = True
             raise _Nak(NAK_AUTH)
         self._auth = (sector, key_type)
-        return b''
+        return OK

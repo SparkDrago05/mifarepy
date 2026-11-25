@@ -613,8 +613,9 @@ def test_is_card_present_false(monkeypatch):
 # --- authenticate_sector_cached ---
 
 def test_authenticate_sector_cached(monkeypatch):
-    """authenticate_sector_cached must call SELECT_CARD then AUTHENTICATE_KEY (0x2E)
-    and must NOT call SAVE_KEY (0x2B)."""
+    """authenticate_sector_cached must call SELECT_CARD then AUTHENTICATE (0x23)
+    with the stored key, and must NOT call SAVE_KEY (0x2B) or AUTHENTICATE_KEY (0x2E),
+    which needs the key in its payload on PGM0487 firmware."""
     resp_req  = build_response(0, ResponseMessage.ACK, b'')
     resp_anti = build_response(0, ResponseMessage.ACK, b'\x01\x02\x03\x04')
     resp_sel  = build_response(0, ResponseMessage.ACK, b'')
@@ -623,7 +624,8 @@ def test_authenticate_sector_cached(monkeypatch):
     monkeypatch.setattr(serial, 'Serial', lambda *args, **kwargs: dummy)
     r = MifareReader()
     r.authenticate_sector_cached(sector=1, key_type='A')
-    assert bytes([QueryMessage.AUTHENTICATE_KEY]) in dummy.written
+    assert bytes(QueryMessage(0, QueryMessage.AUTHENTICATE, b'\x60\x01')) in dummy.written
+    assert bytes([QueryMessage.AUTHENTICATE_KEY]) not in dummy.written
     assert bytes([QueryMessage.SAVE_KEY]) not in dummy.written
 
 

@@ -82,13 +82,28 @@ def test_auto_without_probe(monkeypatch):
 
 
 def test_auto_not_found_lists_ports(monkeypatch):
-    monkeypatch.setattr(discovery.list_ports, 'comports', lambda: [fake_port('/dev/ttyS0', description='n/a')])
+    monkeypatch.setattr(discovery.list_ports, 'comports', lambda: [
+        fake_port('/dev/ttyACM0', 0x2341, 0x0043, description='Arduino Uno'),
+        fake_port('/dev/ttyS0', description='n/a'),
+    ])
     with pytest.raises(ReaderNotFoundError) as info:
         MifareReader.auto()
-    assert '/dev/ttyS0' in str(info.value)
+    assert '/dev/ttyACM0 (Arduino Uno)' in str(info.value)
     assert 'include_all=True' in str(info.value)
-    assert info.value.ports == [('/dev/ttyS0', 'n/a')]
+    assert info.value.ports == [('/dev/ttyACM0', 'Arduino Uno'), ('/dev/ttyS0', 'n/a')]
     assert isinstance(info.value, RuntimeError)
+
+
+def test_auto_not_found_summarises_empty_builtin_ports(monkeypatch):
+    # Linux lists /dev/ttyS0..31 even with no UART behind them.
+    monkeypatch.setattr(discovery.list_ports, 'comports', lambda: [
+        fake_port(f'/dev/ttyS{i}', description='n/a') for i in range(32)])
+    with pytest.raises(ReaderNotFoundError) as info:
+        MifareReader.auto()
+    message = str(info.value)
+    assert '/dev/ttyS5' not in message
+    assert '32 built-in ports that report no hardware' in message
+    assert len(info.value.ports) == 32
 
 
 def test_auto_no_ports_at_all(monkeypatch):
@@ -103,6 +118,9 @@ def test_auto_no_ports_at_all(monkeypatch):
     (serial.SerialException(errno.EACCES, 'Permission denied'), 'ermission'),
     (serial.SerialException(errno.ENOENT, 'No such file or directory'), 'MifareReader.auto()'),
     (serial.SerialException(errno.EBUSY, 'Device or resource busy'), 'in use'),
+    # What pyserial raises on Linux for exclusive=True when another process holds the lock.
+    (serial.SerialException(errno.EAGAIN, 'Could not exclusively lock port /dev/ttyUSB9: '
+                                          '[Errno 11] Resource temporarily unavailable'), 'in use'),
     (serial.SerialException('something odd'), 'Check the cable'),
 ])
 def test_connection_error_hints(monkeypatch, exc, expected):
@@ -166,7 +184,7 @@ def test_trace_logs_frames_and_hides_keys():
         disable_wire_trace(handler)
     out = stream.getvalue()
     assert 'TX SAVE_KEY' in out and 'TX AUTHENTICATE' in out
-    assert 'RX NAK 0x04' in out and 'Authentication error' in out   # default keys don't match
+    assert 'RX NAK 0x09' in out and 'Key error' in out   # default keys don't match
     assert 'A1 B2' not in out and '** ** ** ** ** **' in out
     assert logging.getLogger('mifarepy.wire').level == logging.NOTSET
 

@@ -37,12 +37,15 @@ class InvalidMessage(Exception):
 # Mapping of NAK payload bytes to human-readable descriptions, following the
 # error-code table in the GIGA-TMS MIFARE Application Programming Guide
 # (TM970014, Annex B).  0x0X-0x3X are card/MIFARE errors; 0xE0-0xE6 are
-# GNetPlus framing/protocol errors.
+# GNetPlus framing/protocol errors.  0x0B and 0x0C are not in that table;
+# they were observed on a PCR310U (firmware PGM0487 V1.4R0).
 _NAK_CODES: dict[bytes, str] = {
     b'\x03': 'Empty',
     b'\x04': 'Authentication error',
     b'\x09': 'Key error',
     b'\x0A': 'Not authenticated',
+    b'\x0B': 'Invalid command data',
+    b'\x0C': 'Not authenticated (read)',
     b'\x0E': 'Transfer error',
     b'\x0F': 'Write error',
     b'\x10': 'Increment error',
@@ -91,14 +94,27 @@ class GNetPlusError(Exception):
 
 
 class NoCardError(GNetPlusError):
-    """No card answered (NAK ``0x1F`` no tag, or ``0x03`` empty)."""
+    """No card answered (NAK ``0x1F`` no tag, or ``0x03`` empty).
+
+    The reader also returns ``0x1F`` for block commands after a failed
+    authentication, because the card drops back to its idle state.
+    """
 
     default_hint = ('No card was found. Place the card flat on the reader, or use '
                     'wait_for_card() to wait for one.')
 
+    #: Hint used when a block command gets "no tag".
+    block_hint = ('No card answered. If the card is on the reader, an earlier '
+                  'authentication or block command failed and the card went idle: '
+                  'call authenticate_sector() again.')
+
 
 class AuthenticationError(GNetPlusError):
-    """The card rejected the key (NAK ``0x04``) or the key was malformed (``0x09``)."""
+    """The card rejected the key.
+
+    PCR310U readers (firmware PGM0487) return NAK ``0x09`` for a wrong key;
+    other GNetPlus readers may return ``0x04``. Both raise this class.
+    """
 
     default_hint = ("The key or key type is wrong for this sector. Check the 6-byte key "
                     "and whether the sector expects Key A or Key B. New cards use "
@@ -106,7 +122,11 @@ class AuthenticationError(GNetPlusError):
 
 
 class NotAuthenticatedError(GNetPlusError):
-    """A block was accessed without authenticating its sector (NAK ``0x0A``)."""
+    """A block was accessed without authenticating its sector.
+
+    PCR310U readers (firmware PGM0487) return NAK ``0x0C`` for reads and
+    ``0x0A`` for writes.
+    """
 
     default_hint = ('Call authenticate_sector() for the sector that holds this block '
                     'before reading or writing it. Block numbers are relative to that sector.')
@@ -140,7 +160,7 @@ class CardTimeoutError(GNetPlusError):
 
 
 class ReaderProtocolError(GNetPlusError):
-    """The reader rejected the frame or command itself (NAK ``0x27``, ``0xE0``–``0xE6``)."""
+    """The reader rejected the frame or command itself (NAK ``0x0B``, ``0x27``, ``0xE0``–``0xE6``)."""
 
     default_hint = ('The reader did not accept the command. It may not support it, or a '
                     'parameter is out of range. Turn on frame tracing to see the exact bytes.')
@@ -159,6 +179,8 @@ NAK_ERROR_CLASSES: dict[int, type[GNetPlusError]] = {
     0x04: AuthenticationError,
     0x09: AuthenticationError,
     0x0A: NotAuthenticatedError,
+    0x0C: NotAuthenticatedError,
+    0x0B: ReaderProtocolError,
     0x12: CardReadError,
     0x0F: CardWriteError,
     0x0E: ValueBlockError,
@@ -192,7 +214,8 @@ def error_for_nak(raw: bytes, context: str = '') -> GNetPlusError:
     desc = _NAK_CODES.get(raw, 'Unknown error')
     cls = NAK_ERROR_CLASSES.get(raw[0], GNetPlusError) if len(raw) == 1 else GNetPlusError
     where = f' ({context})' if context else ''
-    return cls(f'NAK received — {desc}{where} (raw={raw!r})', raw=raw)
+    hint = NoCardError.block_hint if cls is NoCardError and context.startswith('block') else None
+    return cls(f'NAK received — {desc}{where} (raw={raw!r})', raw=raw, hint=hint)
 
 
 class ReaderConnectionError(RuntimeError):

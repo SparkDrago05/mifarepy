@@ -81,7 +81,7 @@ def test_wrong_key_raises_authentication_error_with_context(mifare_reader):
         mifare_reader.authenticate_sector(3, OTHER_KEY, 'B')
     err = info.value
     assert isinstance(err, GNetPlusError)
-    assert err.nak_code == 0x04
+    assert err.nak_code == 0x09        # what PGM0487 firmware returns for a wrong key
     assert 'sector 3, key B' in str(err)
     assert 'Hint:' in str(err) and err.hint
 
@@ -110,8 +110,51 @@ def test_trailer_hides_key_a(mifare_reader):
 
 def test_cached_authentication(mifare_reader):
     mifare_reader.authenticate_sector(1, KEY)
-    mifare_reader.authenticate_sector_cached(2)
+    mifare_reader.authenticate_sector_cached(2)   # reader's stored key slots start as FF..FF
     mifare_reader.read_block(0)
+
+
+def test_cached_authentication_uses_key_stored_for_that_sector(mifare_card):
+    mifare_card.set_trailer(2, key_a=OTHER_KEY)
+    mifare_card.set_trailer(3, key_a=OTHER_KEY)
+    reader = MifareReader.simulated(mifare_card)
+    reader.authenticate_sector(2, OTHER_KEY)
+    reader.authenticate_sector_cached(2)
+    with pytest.raises(AuthenticationError, match='sector 3, stored key A'):
+        reader.authenticate_sector_cached(3)       # nothing saved for sector 3 yet
+
+
+def test_authenticate_key_command_needs_key_in_payload(mifare_reader):
+    Q = QueryMessage
+    mifare_reader.select_card()
+    mifare_reader.sendmsg(Q.AUTHENTICATE_KEY, b'\x60\x01')
+    with pytest.raises(AuthenticationError):
+        mifare_reader.readmsg()
+    mifare_reader.select_card()
+    mifare_reader.sendmsg(Q.AUTHENTICATE_KEY, b'\x60\x01' + KEY)
+    mifare_reader.readmsg()
+
+
+def test_failed_access_drops_card_to_idle(mifare_reader):
+    mifare_reader.scan_tag()
+    with pytest.raises(NotAuthenticatedError) as info:
+        mifare_reader.read_block(0)
+    assert info.value.nak_code == 0x0C
+    with pytest.raises(NoCardError):               # card is idle until the next REQUEST
+        mifare_reader.write_block(1, bytes(16))
+    mifare_reader.scan_tag()
+    with pytest.raises(NotAuthenticatedError) as info:
+        mifare_reader.write_block(1, bytes(16))
+    assert info.value.nak_code == 0x0A
+
+
+def test_auto_mode_sends_no_event_for_card_already_present():
+    sim = SimulatedReader(SimulatedCard())
+    reader = MifareReader.from_serial(sim)
+    reader.set_auto_mode(True)
+    assert sim.in_waiting == 0
+    sim.place_card(SimulatedCard())
+    assert sim.in_waiting > 0
 
 
 def test_sector_and_bulk_io(mifare_reader, mifare_card):
@@ -244,3 +287,53 @@ def test_manufacturer_block_is_read_only(mifare_reader):
     mifare_reader.authenticate_sector(0, KEY)
     with pytest.raises(GNetPlusError):
         mifare_reader.write_block(0, b'\x00' * 16)
+
+
+# Frames captured from a PCR310U (firmware PGM0487 V1.4R0) with a 1K card,
+# UID 0x33EB1430 and default keys. The simulator must answer byte for byte the same.
+REAL_READER_FRAMES = [
+    # (query function, query data, reply frame)
+    (QueryMessage.REQUEST, b'', '01 00 06 02 04 00 88 87'),
+    (QueryMessage.ANTI_COLLISION, b'', '01 00 06 04 30 14 EB 33 47 AB'),
+    (QueryMessage.SELECT_CARD, bytes.fromhex('3014EB33'), '01 00 06 01 08 73 E0'),
+    (QueryMessage.SAVE_KEY, b'\x60\x01' + KEY, '01 00 06 01 00 B5 E1'),
+    (QueryMessage.AUTHENTICATE, b'\x60\x01', '01 00 06 01 00 B5 E1'),
+    (QueryMessage.READ_BLOCK, b'\x01', '01 00 06 10' + ' 00' * 16 + ' 68 C9'),
+    (QueryMessage.SAVE_KEY, b'\x60\x01' + OTHER_KEY, '01 00 06 01 00 B5 E1'),
+    (QueryMessage.REQUEST, b'', '01 00 06 02 04 00 88 87'),
+    (QueryMessage.ANTI_COLLISION, b'', '01 00 06 04 30 14 EB 33 47 AB'),
+    (QueryMessage.SELECT_CARD, bytes.fromhex('3014EB33'), '01 00 06 01 08 73 E0'),
+    (QueryMessage.AUTHENTICATE, b'\x60\x01', '01 00 15 01 09 76 D0'),         # wrong key
+    (QueryMessage.REQUEST, b'', '01 00 06 02 04 00 88 87'),
+    (QueryMessage.ANTI_COLLISION, b'', '01 00 06 04 30 14 EB 33 47 AB'),
+    (QueryMessage.SELECT_CARD, bytes.fromhex('3014EB33'), '01 00 06 01 08 73 E0'),
+    (QueryMessage.HALT, b'', '01 00 06 01 00 B5 E1'),
+    (QueryMessage.REQUEST, b'', '01 00 15 01 1F B8 51'),                    # halted: no tag
+    (QueryMessage.REQUEST_ALL, b'', '01 00 06 02 04 00 88 87'),
+    (QueryMessage.AUTO_MODE, b'\x01', '01 00 06 01 01 75 20'),               # no EVN follows
+    (QueryMessage.AUTO_MODE, b'\x00', '01 00 06 01 00 B5 E1'),
+    (QueryMessage.GET_SECOND_SN, b'', '01 00 15 01 EE 3C 90'),
+    (QueryMessage.RF_POWER_ONOFF, b'\x00', '01 00 06 01 00 B5 E1'),
+    (QueryMessage.RF_POWER_ONOFF, b'\x01', '01 00 06 01 00 B5 E1'),
+]
+
+
+def test_simulator_answers_like_real_reader():
+    sim = SimulatedReader(SimulatedCard(uid='0x33EB1430'))
+    sim.timeout = 0
+    for function, data, expected in REAL_READER_FRAMES:
+        sim.write(bytes(QueryMessage(0, function, data)))
+        reply = sim.read(256)
+        assert reply.hex(' ').upper() == expected, QueryMessage(0, function, data)
+
+
+def test_no_card_hint_depends_on_command(mifare_reader, mifare_simulator):
+    mifare_reader.authenticate_sector(1, KEY)
+    with pytest.raises(AuthenticationError):
+        mifare_reader.authenticate_sector(1, OTHER_KEY)
+    with pytest.raises(NoCardError, match='went idle'):
+        mifare_reader.read_block(0)
+    mifare_simulator.remove_card()
+    with pytest.raises(NoCardError) as info:
+        mifare_reader.get_uid()
+    assert 'idle' not in str(info.value) and 'Place the card' in info.value.hint

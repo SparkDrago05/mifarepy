@@ -132,8 +132,9 @@ Now use `MifareReader('/dev/promag')`.
 | `ReaderNotFoundError` from `auto()` | No PL2303 reader answered | Check the cable, try `auto(include_all=True)`, or pass the port name. |
 | `InvalidMessage` / timeouts on every call | Another program has the port open, or the wrong baud rate | Close other serial tools and keep the default 19200 baud |
 | `NoCardError: No tag in field` (NAK `0x1F`) | No card on the reader | Place the card flat on the reader, or wait with `wait_for_card()` |
-| `AuthenticationError` (NAK `0x04`) | Wrong key or key type for that sector | Check the key and Key A/B. See the [primer](mifare-classic.md#keys-and-authentication). |
-| `NotAuthenticatedError` (NAK `0x0A`) | Read/write before authenticating, or a different sector | Call `authenticate_sector()` for the sector you access |
+| `AuthenticationError` (NAK `0x09`; `0x04` on some readers) | Wrong key or key type for that sector | Check the key and Key A/B. See the [primer](mifare-classic.md#keys-and-authentication). |
+| `NotAuthenticatedError` (NAK `0x0C` read, `0x0A` write) | Read/write before authenticating, or a different sector | Call `authenticate_sector()` for the sector you access |
+| `NoCardError` (NAK `0x1F`) with the card on the reader | An earlier authentication or block command failed, so the card went back to idle | Call `authenticate_sector()` again |
 | Card stops responding after an aborted transaction | Card state machine is stuck | Cycle the RF field with `rf_power(False)` / `rf_power(True)`. See [example 09](examples.md#09-rf-power-cycling). |
 | Spurious events after reconnecting | Auto mode was left on | `close()` turns auto mode off. Call `set_auto_mode(False)` if you crashed before closing. |
 | Anything else unexpected | | Turn on [frame tracing](usage.md#frame-tracing) with `enable_wire_trace()` and look at the exact frames and NAK codes. |

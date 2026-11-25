@@ -68,7 +68,8 @@ def _open_hint(port: str, exc: Exception) -> str:
             return ('Permission denied. Add yourself to the dialout group '
                     '(sudo usermod -aG dialout "$USER"), then log out and back in.')
         return 'Permission denied. Close other programs using the port and try again.'
-    if code == errno.EBUSY or 'busy' in text:
+    # EAGAIN: pyserial's exclusive=True found another process holding the lock.
+    if code in (errno.EBUSY, errno.EAGAIN) or 'busy' in text or 'exclusively lock' in text:
         return 'The port is in use by another program. Close it and try again.'
     if code == errno.ENOENT or 'no such file' in text or 'cannot find' in text or 'filenotfound' in text:
         return ('That port does not exist. Use MifareReader.auto() to find the reader, '
@@ -251,8 +252,19 @@ class MifareReader:
         if tried:
             lines.append('Tried: ' + '; '.join(tried))
         if seen:
-            lines.append('Serial ports on this computer: ' + ', '.join(
-                f'{p.device} ({p.description})' for p in seen))
+            # Linux lists many built-in UART slots (/dev/ttyS*) that report no
+            # hardware; name only ports with USB IDs or a real description.
+            named = [p for p in seen if p.vid is not None or p.description not in ('', 'n/a')]
+            hidden = len(seen) - len(named)
+            builtin = f'{hidden} built-in port{"s" if hidden != 1 else ""} that report no hardware'
+            if named:
+                listing = ', '.join(f'{p.device} ({p.description})' for p in named)
+                if hidden:
+                    listing += f' (and {builtin})'
+                lines.append('Serial ports on this computer: ' + listing)
+            else:
+                lines.append(f'No USB serial ports were found, only {builtin}. '
+                             'Check the USB cable and driver.')
             if not include_all:
                 lines.append('If your reader uses a different USB-serial chip, '
                              'try MifareReader.auto(include_all=True) or pass the port name.')
@@ -385,6 +397,7 @@ class MifareReader:
 
     def _detect_card_uid(self) -> bytes:
         """Send REQUEST + ANTI_COLLISION; return the raw 4-byte UID bytes."""
+        self._auth_sector = None          # a new REQUEST ends any authentication
         self.sendmsg(QueryMessage.REQUEST)
         self.readmsg(sink_events=True)
         self.sendmsg(QueryMessage.ANTI_COLLISION)
@@ -395,6 +408,7 @@ class MifareReader:
 
         Unlike `_detect_card_uid()`, this wakes HALT-state cards too.
         """
+        self._auth_sector = None          # a new REQUEST ends any authentication
         self.sendmsg(QueryMessage.REQUEST_ALL)
         self.readmsg(sink_events=True)
         self.sendmsg(QueryMessage.ANTI_COLLISION)
@@ -822,17 +836,24 @@ class MifareReader:
         key_type: Literal['A', 'B'] = 'A',
         timeout: float = 1.0,
     ) -> None:
-        """Authenticate a sector using a key that is **already loaded** in the reader.
+        """Authenticate a sector using the key the reader already stores for it.
 
-        Skips the SAVE_KEY step (opcode 0x2B) and jumps straight to
-        AUTHENTICATE_KEY (opcode 0x2E).  This is faster when the same key
-        has already been loaded by a previous `authenticate_sector()` call
-        in the same session.
+        The reader keeps one key per sector and key type. `authenticate_sector()`
+        saves the key for that sector (SAVE_KEY, opcode 0x2B); this method skips
+        that step and sends AUTHENTICATE (opcode 0x23), which uses the stored
+        key. It saves about 50 ms per call.
 
-        Warning:
-            The reader only stores **one** key internally.  If any other sector
-            was authenticated (or the reader was reset) since the last
-            SAVE_KEY, call `authenticate_sector()` instead.
+        ```python
+        reader.authenticate_sector(2, key)           # stores key for sector 2, key A
+        ...
+        reader.authenticate_sector_cached(2)         # re-authenticates sector 2 later
+        ```
+
+        Note:
+            The key is stored per sector. Authenticating sector 1 does not
+            store a key for sector 2, so `authenticate_sector_cached(2)` uses
+            whatever key was saved for sector 2 before, if any. Call
+            `authenticate_sector()` once for each sector first.
 
         Args:
             sector: Sector to authenticate (0-15 for 1K; 0-39 for 4K).
@@ -841,7 +862,8 @@ class MifareReader:
 
         Raises:
             ValueError: If ``key_type`` is invalid.
-            GNetPlusError: If the reader returns NAK.
+            AuthenticationError: If the stored key does not match the card.
+            GNetPlusError: If the reader returns another NAK.
         """
         if key_type not in ('A', 'B'):
             raise ValueError("key_type must be 'A' or 'B'")
@@ -850,7 +872,9 @@ class MifareReader:
 
         auth_code = 0x60 if key_type == 'A' else 0x61
         payload = bytes([auth_code, sector])
-        self.sendmsg(QueryMessage.AUTHENTICATE_KEY, payload)
+        # Not AUTHENTICATE_KEY (0x2E): on PGM0487 firmware that command needs
+        # the key in its payload and fails without it.
+        self.sendmsg(QueryMessage.AUTHENTICATE, payload)
 
         orig_timeout = getattr(self.serial, 'timeout', None)
         self.serial.timeout = timeout

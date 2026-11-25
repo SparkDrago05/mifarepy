@@ -117,7 +117,7 @@ def test_restore_uses_restore_then_transfer_on_same_block(monkeypatch):
 def test_unsupported_command_falls_back_and_is_remembered(monkeypatch):
     # authenticate_sector: REQUEST, ANTI_COLLISION, SELECT, SAVE_KEY, AUTHENTICATE
     auth = [resp(data=b'\x04\x00'), resp(data=b'\x01\x02\x03\x04'), ack(), ack(), ack()]
-    # authenticate_sector_cached: REQUEST, ANTI_COLLISION, SELECT, AUTHENTICATE_KEY
+    # authenticate_sector_cached: REQUEST, ANTI_COLLISION, SELECT, AUTHENTICATE
     cached = [resp(data=b'\x04\x00'), resp(data=b'\x01\x02\x03\x04'), ack(), ack()]
     responses = (
         auth
@@ -131,7 +131,8 @@ def test_unsupported_command_falls_back_and_is_remembered(monkeypatch):
     r.transfer(0, 1)
     assert r._native_values_ok is False
     assert fake.payloads(Q.CREATE_VALUE_BLOCK)[-1] == b'\x01' + struct.pack('<i', 10)
-    assert Q.AUTHENTICATE_KEY in fake.functions()
+    assert fake.functions().count(Q.AUTHENTICATE) == 2   # re-authenticated with the stored key
+    assert fake.functions().count(Q.SAVE_KEY) == 1
 
     before = len(fake.written)
     r.transfer(0, 1)

@@ -120,7 +120,7 @@ readers typically implement polling, version, address, echo and reset.
 | `0x2B` | Save key | key type + sector + key | — | `authenticate_sector()` |
 | `0x2C` | Get second serial number | — | 4 bytes | `get_second_sn()` (Ultralight) |
 | `0x2D` | Read access conditions | — | 5 bytes | <span class="mp-no">not wrapped</span> |
-| `0x2E` | Authenticate with stored key | key type + sector | — | `authenticate_sector_cached()` |
+| `0x2E` | Authenticate with key | key type + sector + 6-byte key | — | <span class="mp-no">not wrapped</span> (PGM0487 answers `0x09` without the key) |
 | `0x2F` | Request all | — | card type | `request_all()` |
 | `0x32` | Set value (without transfer) | block + op + value | — | <span class="mp-no">not wrapped</span> |
 | `0x33` | Transfer | block | — | `transfer()`, `restore()` |
@@ -150,15 +150,17 @@ Key type codes: **Key A = `0x60`**, **Key B = `0x61`**. Value operation codes:
 
 When a command fails, the reader replies with `NAK` and a single error byte.
 mifarepy raises a subclass of `GNetPlusError` (for example
-`AuthenticationError` for `0x04`; see [error handling](usage.md#error-handling))
+`AuthenticationError` for `0x09`; see [error handling](usage.md#error-handling))
 and fills in `nak_code`, `code_description` and a fix `hint`:
 
 | Code | Description in mifarepy | Typical cause |
 |---|---|---|
 | `0x03` | Empty | No data available |
-| `0x04` | Authentication error | Wrong key or key type for the sector |
-| `0x09` | Key error | Malformed or missing key |
-| `0x0A` | Not authenticated | Block access without authenticating that sector |
+| `0x04` | Authentication error | Wrong key or key type (other GNetPlus readers) |
+| `0x09` | Key error | Wrong key or key type for the sector (PCR310U, PGM0487 firmware) |
+| `0x0A` | Not authenticated | Write without authenticating that sector |
+| `0x0B` | Invalid command data | Malformed payload, e.g. AUTHENTICATE_KEY without a key type and sector ¹ |
+| `0x0C` | Not authenticated (read) | Read without authenticating that sector ¹ |
 | `0x0E` | Transfer error | Value transfer failed |
 | `0x0F` | Write error | Write rejected (access conditions or card removed) |
 | `0x10` | Increment error | Increment rejected by the card |
@@ -178,13 +180,19 @@ and fills in `nak_code`, `code_description` and a fix `hint`:
 | `0xE5` | Out of frame | Frame incomplete or too long |
 | `0xE6` | Unknown command | Command not supported by this reader |
 
+¹ Not in the vendor table; observed on a PCR310U with firmware `PGM0487 V1.4R0`.
+
+After a failed authentication or a NAK on a block command, the card drops back
+to its idle state. Further block commands then get `0x1F` (no tag) until the
+card is selected again; `authenticate_sector()` does that for you.
+
 ```python
-from mifarepy import GNetPlusError
+from mifarepy import AuthenticationError, GNetPlusError
 
 try:
     reader.authenticate_sector(1, key)
 except GNetPlusError as e:
-    if e.nak_code == 0x04:
+    if isinstance(e, AuthenticationError):
         print('Wrong key for sector 1')
     else:
         print(f'Reader error 0x{e.nak_code:02X}: {e.code_description}')
@@ -195,7 +203,8 @@ except GNetPlusError as e:
 With auto mode on (`set_auto_mode(True)`), the reader sends `EVN` frames by
 itself. mifarepy recognises the card-arrival event (payload `b'I'`), which is
 how `wait_for_card()` wakes up. `readmsg(sink_events=True)` skips events while
-waiting for a command's response.
+waiting for a command's response. A card that is already on the reader when
+auto mode is turned on sends no event; only a card arriving afterwards does.
 
 ## Sending raw commands
 

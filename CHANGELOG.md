@@ -7,12 +7,15 @@ All notable changes to mifarepy are documented here. The format follows
 ## [3.2.0] - 2026-11-06
 
 Zero-config: find the reader automatically, test without hardware, and get
-errors that say what went wrong and how to fix it.
+errors that say what went wrong and how to fix it. Checked on a PROMAG
+PCR310U (firmware `PGM0487 V1.4R0`); the simulator answers byte for byte like
+that reader.
 
 ### Added
 - `MifareReader.auto()` finds a PROMAG reader by its USB-serial chip
   (Prolific PL2303) and checks it answers before returning it; raises
-  `ReaderNotFoundError` listing the ports it saw. `mifarepy.discovery.find_ports()`
+  `ReaderNotFoundError` listing the ports it saw (empty built-in `/dev/ttyS*`
+  slots are counted, not listed). `mifarepy.discovery.find_ports()`
   lists candidate ports.
 - `mifarepy.simulator`: `SimulatedReader` and `SimulatedCard` (1K/4K) answer
   GNetPlus commands like a real reader, including keys, value blocks, HALT,
@@ -26,7 +29,9 @@ errors that say what went wrong and how to fix it.
   `ReaderProtocolError`, `ReaderAccessError`. Each has a `hint`; errors from
   authentication and block access say which sector, key and block.
 - `ReaderConnectionError` (a `RuntimeError`, as before) when a port can't be
-  opened, with a hint for permission, busy and missing-port problems.
+  opened, with a hint for permission, busy and missing-port problems. Opening
+  with `exclusive=True` while another program holds the port gives the
+  "in use" hint.
 - Frame tracing: every frame is logged, decoded, on the `mifarepy.wire`
   logger; `enable_wire_trace()` prints it. Card keys are hidden unless
   `show_keys=True`.
@@ -37,6 +42,18 @@ errors that say what went wrong and how to fix it.
   `raw`, `nak_code` and `code_description` are unchanged.
 - CI measures coverage with `coverage run`, because mifarepy's pytest plugin
   loads the package before `pytest --cov` starts.
+- NAK `0x0C` (read without authentication, as PGM0487 firmware returns) now
+  raises `NotAuthenticatedError`, and `0x0B` raises `ReaderProtocolError`.
+  Docs list `0x09` as the wrong-key code on the PCR310U.
+
+### Fixed
+- `authenticate_sector_cached()` failed with NAK `0x09` on PGM0487 firmware,
+  even for the sector just authenticated: it used AUTHENTICATE_KEY (`0x2E`),
+  which needs the key in its payload. It now sends AUTHENTICATE (`0x23`),
+  which uses the key the reader stores for that sector. This also fixes the
+  re-authentication after a failed native value command.
+- Errors after `scan_tag()` / `get_uid()` named the sector of an earlier,
+  no longer valid authentication.
 
 ## [3.1.1] - 2026-11-05
 

@@ -142,12 +142,16 @@ call immediately after any write operation.
 ### Cached (skip key reload)
 
 ```python
-# After authenticate_sector has already loaded a key once:
+reader.authenticate_sector(sector=2, key=KEY_A)       # saves the key for sector 2
+...
 reader.authenticate_sector_cached(sector=2, key_type='A')
 ```
 
-`authenticate_sector_cached` uses AUTHENTICATE_KEY (opcode 0x2E) and skips
-SAVE_KEY, saving ~50 ms per sector when the same key is reused.
+The reader stores one key per sector and key type. `authenticate_sector_cached`
+skips SAVE_KEY and sends AUTHENTICATE (opcode 0x23), which uses the key stored
+for that sector. This saves about 50 ms per call. Authenticating sector 1 does
+not store a key for sector 2, so call `authenticate_sector()` once for each
+sector you want to re-authenticate this way.
 
 ---
 
@@ -297,7 +301,7 @@ When the reader rejects a command, mifarepy raises a specific subclass of
 `GNetPlusError`, with the context and a hint on how to fix it:
 
 ```text
-mifarepy.AuthenticationError: NAK received — Authentication error (sector 3, key A) (raw=b'\x04')
+mifarepy.AuthenticationError: NAK received — Key error (sector 3, key A) (raw=b'\t')
 Hint: The key or key type is wrong for this sector. Check the 6-byte key and
 whether the sector expects Key A or Key B. New cards use FFFFFFFFFFFF.
 ```
@@ -305,12 +309,12 @@ whether the sector expects Key A or Key B. New cards use FFFFFFFFFFFF.
 | Exception | When | NAK codes |
 |---|---|---|
 | `NoCardError` | No card on the reader | `0x1F`, `0x03` |
-| `AuthenticationError` | Wrong key or key type | `0x04`, `0x09` |
-| `NotAuthenticatedError` | Block accessed before authenticating its sector | `0x0A` |
+| `AuthenticationError` | Wrong key or key type | `0x09` (PCR310U), `0x04` |
+| `NotAuthenticatedError` | Block accessed before authenticating its sector | `0x0C` (read), `0x0A` (write) |
 | `CardReadError` / `CardWriteError` | Read or write refused (access conditions, card moved) | `0x12` / `0x0F` |
 | `ValueBlockError` | Value operation failed | `0x0E`, `0x10`, `0x11` |
 | `CardTimeoutError` | Card stopped answering | `0x1C` |
-| `ReaderProtocolError` | Command or parameter not accepted by the reader | `0x27`, `0xE0`–`0xE6` |
+| `ReaderProtocolError` | Command or parameter not accepted by the reader | `0x0B`, `0x27`, `0xE0`–`0xE6` |
 | `ReaderAccessError` | Reader needs a logon or host key | `0x2D`, `0x2F`, `0x33` |
 
 All of them are `GNetPlusError`, so existing `except GNetPlusError` code keeps
@@ -344,6 +348,14 @@ Opening a port that doesn't exist, is busy, or that you may not access raises
 `ReaderConnectionError` (a `RuntimeError`) with a hint, such as joining the
 `dialout` group on Linux.
 
+On Linux, two programs can open the same serial port at once, and their
+replies then get mixed up. Pass `exclusive=True` to lock the port; if another
+program already holds the lock, you get the "in use" hint:
+
+```python
+reader = MifareReader('/dev/ttyUSB0', exclusive=True)
+```
+
 See the [error code table](protocol.md#error-codes) for every NAK code the
 reader can return, and [troubleshooting](hardware.md#troubleshooting) for
 common fixes.
@@ -366,9 +378,9 @@ with MifareReader.auto() as reader:
 10:42:01.512 TX SELECT_CARD      01 00 22 04 | 34 C6 9B D3 | E2 28
 10:42:01.530 RX ACK              01 00 06 01 | 08 | 73 E0
 10:42:01.531 TX SAVE_KEY         01 00 2B 08 | 60 01 ** ** ** ** ** ** | 82 90
-10:42:01.598 RX ACK              01 00 06 00 |  | 60 72
+10:42:01.598 RX ACK              01 00 06 01 | 00 | B5 E1
 10:42:01.599 TX AUTHENTICATE     01 00 23 02 | 60 01 | 84 67
-10:42:01.615 RX NAK 0x04         01 00 15 01 | 04 | B3 11   Authentication error
+10:42:01.615 RX NAK 0x09         01 00 15 01 | 09 | 76 D0   Key error
 ```
 
 Keys are shown as `**`. Pass `show_keys=True` to print them, but only on test
