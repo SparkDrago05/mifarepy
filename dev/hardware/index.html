@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -618,6 +618,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#find-the-reader-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find the reader automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#find-the-serial-port" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -702,6 +713,8 @@
   
     
     
+      
+        
       
         
       
@@ -797,6 +810,34 @@
     
   
     MIFARE Classic primer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing without hardware
   
 
     
@@ -1155,6 +1196,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#find-the-reader-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find the reader automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#find-the-serial-port" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1276,32 +1328,51 @@ Ultralight cards. <code>get_second_sn()</code> reads the Ultralight's second ser
 part, but there is no Ultralight read/write API yet.</p>
 <p>Serial settings are fixed by the reader firmware: <strong>19200 baud, 8 data bits,
 no parity, 1 stop bit</strong>. <code>MifareReader</code> uses these by default.</p>
+<h2 id="find-the-reader-automatically">Find the reader automatically<a class="headerlink" href="#find-the-reader-automatically" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">'Reader on'</span><span class="p">,</span> <span class="n">reader</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="s1">'-'</span><span class="p">,</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_version</span><span class="p">())</span>
+</span></code></pre></div>
+<p><code>auto()</code> looks for the Prolific PL2303 USB-serial chip (USB ID <code>067b:2303</code>
+and later revisions) and sends a POLLING command to confirm the device is a
+GNetPlus reader. To see which ports it considers:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_ports</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">find_ports</span><span class="p">(</span><span class="n">include_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">port</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="s1">'&lt;- reader?'</span> <span class="k">if</span> <span class="n">port</span><span class="o">.</span><span class="n">likely_reader</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span>
+</span></code></pre></div>
+<p>If nothing is found, <code>ReaderNotFoundError</code> lists every serial port on the
+computer. For readers on an RS-232 adapter with another chip, use
+<code>MifareReader.auto(include_all=True)</code>; it probes every serial port, so only use
+it when no other serial devices would mind a few stray bytes. Otherwise pass
+the port name, as below.</p>
 <h2 id="find-the-serial-port">Find the serial port<a class="headerlink" href="#find-the-serial-port" title="Permanent link">&para;</a></h2>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Linux</label><label for="__tabbed_1_2">Windows</label><label for="__tabbed_1_3">macOS</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>Plug the reader in and check the kernel log:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sudo<span class="w"> </span>dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-E<span class="w"> </span><span class="s2">"pl2303|ttyUSB"</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sudo<span class="w"> </span>dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>-E<span class="w"> </span><span class="s2">"pl2303|ttyUSB"</span>
 </span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>usb 1-1: New USB device found, idVendor=067b, idProduct=2303
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pl2303 1-1:1.0: pl2303 converter detected
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>usb 1-1: pl2303 converter now attached to ttyUSB0
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>usb 1-1: New USB device found, idVendor=067b, idProduct=2303
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pl2303 1-1:1.0: pl2303 converter detected
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>usb 1-1: pl2303 converter now attached to ttyUSB0
 </span></code></pre></div>
 <p>The reader is at <code>/dev/ttyUSB0</code>. You can also list ports from Python:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>serial.tools.list_ports<span class="w"> </span>-v
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>serial.tools.list_ports<span class="w"> </span>-v
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
 <p>Open <strong>Device Manager → Ports (COM &amp; LPT)</strong>. The reader shows up as
 <em>Prolific USB-to-Serial Comm Port (COM3)</em> or similar. Use that name:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'COM3'</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">MifareReader</span><span class="p">(</span><span class="s1">'COM3'</span><span class="p">)</span>
 </span></code></pre></div>
 <p>If it shows a yellow warning icon, install the current Prolific PL2303
 driver from Windows Update or the Prolific website.</p>
 </div>
 <div class="tabbed-block">
 <p>Recent macOS versions include a PL2303 driver. Look for the device with:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ls<span class="w"> </span>/dev/cu.usbserial*
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ls<span class="w"> </span>/dev/cu.usbserial*
 </span></code></pre></div>
 <p>and pass that path, e.g. <code>MifareReader('/dev/cu.usbserial-1410')</code>.</p>
 </div>
@@ -1310,14 +1381,14 @@ driver from Windows Update or the Prolific website.</p>
 <h2 id="permissions-linux">Permissions (Linux)<a class="headerlink" href="#permissions-linux" title="Permanent link">&para;</a></h2>
 <p>Serial devices belong to the <code>dialout</code> group (<code>uucp</code> on Arch). Add your user
 once, then log out and back in:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>dialout<span class="w"> </span><span class="s2">"</span><span class="nv">$USER</span><span class="s2">"</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>dialout<span class="w"> </span><span class="s2">"</span><span class="nv">$USER</span><span class="s2">"</span>
 </span></code></pre></div>
 <h3 id="stable-device-name-optional">Stable device name (optional)<a class="headerlink" href="#stable-device-name-optional" title="Permanent link">&para;</a></h3>
 <p><code>/dev/ttyUSB0</code> can change when you plug in other USB-serial devices. A udev
 rule gives the reader a fixed name:</p>
-<div class="language-bash highlight"><span class="filename">/etc/udev/rules.d/99-promag.rules</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nv">SUBSYSTEM</span><span class="o">==</span><span class="s2">"tty"</span>,<span class="w"> </span>ATTRS<span class="o">{</span>idVendor<span class="o">}==</span><span class="s2">"067b"</span>,<span class="w"> </span>ATTRS<span class="o">{</span>idProduct<span class="o">}==</span><span class="s2">"2303"</span>,<span class="w"> </span><span class="nv">SYMLINK</span><span class="o">+=</span><span class="s2">"promag"</span>,<span class="w"> </span><span class="nv">GROUP</span><span class="o">=</span><span class="s2">"dialout"</span>,<span class="w"> </span><span class="nv">MODE</span><span class="o">=</span><span class="s2">"0660"</span>
+<div class="language-bash highlight"><span class="filename">/etc/udev/rules.d/99-promag.rules</span><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nv">SUBSYSTEM</span><span class="o">==</span><span class="s2">"tty"</span>,<span class="w"> </span>ATTRS<span class="o">{</span>idVendor<span class="o">}==</span><span class="s2">"067b"</span>,<span class="w"> </span>ATTRS<span class="o">{</span>idProduct<span class="o">}==</span><span class="s2">"2303"</span>,<span class="w"> </span><span class="nv">SYMLINK</span><span class="o">+=</span><span class="s2">"promag"</span>,<span class="w"> </span><span class="nv">GROUP</span><span class="o">=</span><span class="s2">"dialout"</span>,<span class="w"> </span><span class="nv">MODE</span><span class="o">=</span><span class="s2">"0660"</span>
 </span></code></pre></div>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>sudo<span class="w"> </span>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>udevadm<span class="w"> </span>trigger
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>sudo<span class="w"> </span>udevadm<span class="w"> </span>control<span class="w"> </span>--reload-rules<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>udevadm<span class="w"> </span>trigger
 </span></code></pre></div>
 <p>Now use <code>MifareReader('/dev/promag')</code>.</p>
 <div class="admonition note">
@@ -1343,9 +1414,14 @@ match on <code>ATTRS{serial}</code> as well.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>RuntimeError: Unable to open port</code></td>
-<td>Wrong port name or no permission</td>
-<td>Check the port as above. On Linux, join the <code>dialout</code> group.</td>
+<td><code>ReaderConnectionError: Unable to open port</code></td>
+<td>Wrong port name, port busy, or no permission</td>
+<td>The message ends with a hint. Use <code>MifareReader.auto()</code>, or check the port as above. On Linux, join the <code>dialout</code> group.</td>
+</tr>
+<tr>
+<td><code>ReaderNotFoundError</code> from <code>auto()</code></td>
+<td>No PL2303 reader answered</td>
+<td>Check the cable, try <code>auto(include_all=True)</code>, or pass the port name.</td>
 </tr>
 <tr>
 <td><code>InvalidMessage</code> / timeouts on every call</td>
@@ -1353,19 +1429,24 @@ match on <code>ATTRS{serial}</code> as well.</p>
 <td>Close other serial tools and keep the default 19200 baud</td>
 </tr>
 <tr>
-<td><code>GNetPlusError: No tag in field</code> (NAK <code>0x1F</code>)</td>
+<td><code>NoCardError: No tag in field</code> (NAK <code>0x1F</code>)</td>
 <td>No card on the reader</td>
 <td>Place the card flat on the reader, or wait with <code>wait_for_card()</code></td>
 </tr>
 <tr>
-<td><code>GNetPlusError: Authentication error</code> (NAK <code>0x04</code>)</td>
+<td><code>AuthenticationError</code> (NAK <code>0x09</code>; <code>0x04</code> on some readers)</td>
 <td>Wrong key or key type for that sector</td>
 <td>Check the key and Key A/B. See the <a href="../mifare-classic/#keys-and-authentication">primer</a>.</td>
 </tr>
 <tr>
-<td><code>GNetPlusError: Not authenticated</code> (NAK <code>0x0A</code>)</td>
+<td><code>NotAuthenticatedError</code> (NAK <code>0x0C</code> read, <code>0x0A</code> write)</td>
 <td>Read/write before authenticating, or a different sector</td>
 <td>Call <code>authenticate_sector()</code> for the sector you access</td>
+</tr>
+<tr>
+<td><code>NoCardError</code> (NAK <code>0x1F</code>) with the card on the reader</td>
+<td>An earlier authentication or block command failed, so the card went back to idle</td>
+<td>Call <code>authenticate_sector()</code> again</td>
 </tr>
 <tr>
 <td>Card stops responding after an aborted transaction</td>
@@ -1376,6 +1457,11 @@ match on <code>ATTRS{serial}</code> as well.</p>
 <td>Spurious events after reconnecting</td>
 <td>Auto mode was left on</td>
 <td><code>close()</code> turns auto mode off. Call <code>set_auto_mode(False)</code> if you crashed before closing.</td>
+</tr>
+<tr>
+<td>Anything else unexpected</td>
+<td></td>
+<td>Turn on <a href="../usage/#frame-tracing">frame tracing</a> with <code>enable_wire_trace()</code> and look at the exact frames and NAK codes.</td>
 </tr>
 </tbody>
 </table>
@@ -1398,12 +1484,13 @@ match on <code>ATTRS{serial}</code> as well.</p>
   <span class="md-source-file__fact">
     <span class="md-icon" title="Contributors">
       
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 5.5A3.5 3.5 0 0 1 15.5 9a3.5 3.5 0 0 1-3.5 3.5A3.5 3.5 0 0 1 8.5 9 3.5 3.5 0 0 1 12 5.5M5 8c.56 0 1.08.15 1.53.42-.15 1.43.27 2.85 1.13 3.96C7.16 13.34 6.16 14 5 14a3 3 0 0 1-3-3 3 3 0 0 1 3-3m14 0a3 3 0 0 1 3 3 3 3 0 0 1-3 3c-1.16 0-2.16-.66-2.66-1.62a5.54 5.54 0 0 0 1.13-3.96c.45-.27.97-.42 1.53-.42M5.5 18.25c0-2.07 2.91-3.75 6.5-3.75s6.5 1.68 6.5 3.75V20h-13zM0 20v-1.5c0-1.39 1.89-2.56 4.45-2.9-.59.68-.95 1.62-.95 2.65V20zm24 0h-3.5v-1.75c0-1.03-.36-1.97-.95-2.65 2.56.34 4.45 1.51 4.45 2.9z"/></svg>
       
     </span>
     <nav>
       
-        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>
+        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>, 
+        <a href="mailto:huzaifa.farooq05@gmail.com">Huzaifa Farooq</a>
     </nav>
   </span>
 

@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -587,6 +587,8 @@
       
         
       
+        
+      
     
     
     
@@ -929,6 +931,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#frame-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame tracing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#type-safety" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -963,6 +976,34 @@
     
   
     MIFARE Classic primer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing without hardware
   
 
     
@@ -1537,6 +1578,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#frame-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame tracing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#type-safety" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1578,18 +1630,30 @@
 <h2 id="opening-a-connection">Opening a connection<a class="headerlink" href="#opening-a-connection" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># context manager (recommended — closes port automatically)</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="o">...</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># find the reader automatically (recommended)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>            <span class="c1"># e.g. '/dev/ttyUSB0' or 'COM3'</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># explicit open / close</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">reader</span> <span class="o">=</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="o">...</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">finally</span><span class="p">:</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># or name the port yourself</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="o">...</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># explicit open / close</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">reader</span> <span class="o">=</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="o">...</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="k">finally</span><span class="p">:</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></code></pre></div>
 <p><code>MifareReader</code> accepts the same keyword arguments as <code>serial.Serial</code> (e.g. <code>timeout=</code>).</p>
+<p><code>MifareReader.auto()</code> looks for the Prolific PL2303 USB-serial chip used in
+PROMAG readers and checks that the device answers before returning it. If no
+reader is found it raises <code>ReaderNotFoundError</code>, listing the serial ports it
+saw. Pass <code>include_all=True</code> to also try other serial ports (for example an
+RS-232 adapter with a different chip). See
+<a href="../hardware/#find-the-reader-automatically">Hardware &amp; setup</a>.</p>
+<p>No reader at hand? <code>MifareReader.simulated()</code> connects to a built-in
+simulator. See <a href="../testing/">Testing without hardware</a>.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">reader</span><span class="p">))</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># MifareReader(port='/dev/ttyUSB0', baudrate=19200, addr=0, open)</span>
 </span></code></pre></div>
@@ -1658,11 +1722,15 @@ mifarepy never writes block 3 through <code>write_sector()</code> or <code>write
 <p><code>authenticate_sector</code> automatically calls <code>select_card()</code> first, so it is safe to
 call immediately after any write operation.</p>
 <h3 id="cached-skip-key-reload">Cached (skip key reload)<a class="headerlink" href="#cached-skip-key-reload" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># After authenticate_sector has already loaded a key once:</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector_cached</span><span class="p">(</span><span class="n">sector</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'A'</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="n">sector</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">KEY_A</span><span class="p">)</span>       <span class="c1"># saves the key for sector 2</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="o">...</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector_cached</span><span class="p">(</span><span class="n">sector</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'A'</span><span class="p">)</span>
 </span></code></pre></div>
-<p><code>authenticate_sector_cached</code> uses AUTHENTICATE_KEY (opcode 0x2E) and skips
-SAVE_KEY, saving ~50 ms per sector when the same key is reused.</p>
+<p>The reader stores one key per sector and key type. <code>authenticate_sector_cached</code>
+skips SAVE_KEY and sends AUTHENTICATE (opcode 0x23), which uses the key stored
+for that sector. This saves about 50 ms per call. Authenticating sector 1 does
+not store a key for sector 2, so call <code>authenticate_sector()</code> once for each
+sector you want to re-authenticate this way.</p>
 <hr />
 <h2 id="reading-and-writing">Reading and writing<a class="headerlink" href="#reading-and-writing" title="Permanent link">&para;</a></h2>
 <h3 id="single-block">Single block<a class="headerlink" href="#single-block" title="Permanent link">&para;</a></h3>
@@ -1782,38 +1850,128 @@ on your reader (<code>reader.get_version()</code>) before relying on it.</p>
 </span></code></pre></div>
 <hr />
 <h2 id="error-handling">Error handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">GNetPlusError</span><span class="p">,</span> <span class="n">InvalidMessage</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">KEY_A</span><span class="p">)</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="k">except</span> <span class="n">GNetPlusError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">code_description</span><span class="p">)</span>   <span class="c1"># 'Authentication error'</span>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">nak_code</span><span class="p">))</span>      <span class="c1"># 0x4</span>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">raw</span><span class="p">))</span>          <span class="c1"># b'\x04'</span>
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>    <span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">serial_port</span><span class="p">)</span>
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="k">except</span> <span class="n">InvalidMessage</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>                    <span class="c1"># human error description</span>
-</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">raw_bytes</span><span class="o">.</span><span class="n">hex</span><span class="p">())</span>    <span class="c1"># partial bytes received before failure</span>
+<p>When the reader rejects a command, mifarepy raises a specific subclass of
+<code>GNetPlusError</code>, with the context and a hint on how to fix it:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>mifarepy.AuthenticationError: NAK received — Key error (sector 3, key A) (raw=b'\t')
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Hint: The key or key type is wrong for this sector. Check the 6-byte key and
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>whether the sector expects Key A or Key B. New cards use FFFFFFFFFFFF.
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>When</th>
+<th>NAK codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NoCardError</code></td>
+<td>No card on the reader</td>
+<td><code>0x1F</code>, <code>0x03</code></td>
+</tr>
+<tr>
+<td><code>AuthenticationError</code></td>
+<td>Wrong key or key type</td>
+<td><code>0x09</code> (PCR310U), <code>0x04</code></td>
+</tr>
+<tr>
+<td><code>NotAuthenticatedError</code></td>
+<td>Block accessed before authenticating its sector</td>
+<td><code>0x0C</code> (read), <code>0x0A</code> (write)</td>
+</tr>
+<tr>
+<td><code>CardReadError</code> / <code>CardWriteError</code></td>
+<td>Read or write refused (access conditions, card moved)</td>
+<td><code>0x12</code> / <code>0x0F</code></td>
+</tr>
+<tr>
+<td><code>ValueBlockError</code></td>
+<td>Value operation failed</td>
+<td><code>0x0E</code>, <code>0x10</code>, <code>0x11</code></td>
+</tr>
+<tr>
+<td><code>CardTimeoutError</code></td>
+<td>Card stopped answering</td>
+<td><code>0x1C</code></td>
+</tr>
+<tr>
+<td><code>ReaderProtocolError</code></td>
+<td>Command or parameter not accepted by the reader</td>
+<td><code>0x0B</code>, <code>0x27</code>, <code>0xE0</code>–<code>0xE6</code></td>
+</tr>
+<tr>
+<td><code>ReaderAccessError</code></td>
+<td>Reader needs a logon or host key</td>
+<td><code>0x2D</code>, <code>0x2F</code>, <code>0x33</code></td>
+</tr>
+</tbody>
+</table>
+<p>All of them are <code>GNetPlusError</code>, so existing <code>except GNetPlusError</code> code keeps
+working. Catch the specific ones when you want to react differently:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuthenticationError</span><span class="p">,</span> <span class="n">GNetPlusError</span><span class="p">,</span> <span class="n">InvalidMessage</span><span class="p">,</span> <span class="n">NoCardError</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">KEY_A</span><span class="p">)</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="k">except</span> <span class="n">NoCardError</span><span class="p">:</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">'Please tap your card'</span><span class="p">)</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="k">except</span> <span class="n">AuthenticationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">'Wrong key:'</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">hint</span><span class="p">)</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="k">except</span> <span class="n">GNetPlusError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">code_description</span><span class="p">)</span>   <span class="c1"># e.g. 'Read error'</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="nb">hex</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">nak_code</span><span class="p">))</span>      <span class="c1"># e.g. 0x12</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">raw</span><span class="p">))</span>          <span class="c1"># b'\x12'</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.protocol</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>    <span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span><span class="n">serial_port</span><span class="p">)</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="k">except</span> <span class="n">InvalidMessage</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>                    <span class="c1"># human error description</span>
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">raw_bytes</span><span class="o">.</span><span class="n">hex</span><span class="p">())</span>    <span class="c1"># partial bytes received before failure</span>
 </span></code></pre></div>
 <hr />
+<p>Opening a port that doesn't exist, is busy, or that you may not access raises
+<code>ReaderConnectionError</code> (a <code>RuntimeError</code>) with a hint, such as joining the
+<code>dialout</code> group on Linux.</p>
+<p>On Linux, two programs can open the same serial port at once, and their
+replies then get mixed up. Pass <code>exclusive=True</code> to lock the port; if another
+program already holds the lock, you get the "in use" hint:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">reader</span> <span class="o">=</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">,</span> <span class="n">exclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></code></pre></div>
 <p>See the <a href="../protocol/#error-codes">error code table</a> for every NAK code the
 reader can return, and <a href="../hardware/#troubleshooting">troubleshooting</a> for
 common fixes.</p>
 <hr />
+<h2 id="frame-tracing">Frame tracing<a class="headerlink" href="#frame-tracing" title="Permanent link">&para;</a></h2>
+<p>To see exactly what goes over the wire, turn on tracing:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span><span class="p">,</span> <span class="n">enable_wire_trace</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="n">enable_wire_trace</span><span class="p">()</span>                 <span class="c1"># prints to stderr</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>    <span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">KEY_A</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>10:42:01.512 TX SELECT_CARD      01 00 22 04 | 34 C6 9B D3 | E2 28
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>10:42:01.530 RX ACK              01 00 06 01 | 08 | 73 E0
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>10:42:01.531 TX SAVE_KEY         01 00 2B 08 | 60 01 ** ** ** ** ** ** | 82 90
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>10:42:01.598 RX ACK              01 00 06 01 | 00 | B5 E1
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>10:42:01.599 TX AUTHENTICATE     01 00 23 02 | 60 01 | 84 67
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>10:42:01.615 RX NAK 0x09         01 00 15 01 | 09 | 76 D0   Key error
+</span></code></pre></div>
+<p>Keys are shown as <code>**</code>. Pass <code>show_keys=True</code> to print them, but only on test
+cards. Frames are logged on the <code>mifarepy.wire</code> logger at DEBUG level, so you
+can also route them through your own logging setup.</p>
+<hr />
 <h2 id="type-safety">Type safety<a class="headerlink" href="#type-safety" title="Permanent link">&para;</a></h2>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">reveal_type</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1"># @overload: IDE knows exact return type</span>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="n">hex_str</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>   <span class="c1"># str</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">raw</span>     <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># bytes</span>
-</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
-</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># SectorAuth validates at construction time</span>
-</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">SectorAuth</span>
-</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="sa">b</span><span class="s1">'</span><span class="se">\xFF</span><span class="s1">'</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span>          <span class="c1"># ValueError: key must be exactly 6 bytes</span>
-</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="sa">b</span><span class="s1">'</span><span class="se">\xFF</span><span class="s1">'</span><span class="o">*</span><span class="mi">6</span><span class="p">,</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'C'</span><span class="p">)</span>  <span class="c1"># ValueError: key_type must be 'A' or 'B'</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">reveal_type</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="c1"># @overload: IDE knows exact return type</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="n">hex_str</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>   <span class="c1"># str</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="n">raw</span>     <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_block</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># bytes</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># SectorAuth validates at construction time</span>
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">SectorAuth</span>
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="sa">b</span><span class="s1">'</span><span class="se">\xFF</span><span class="s1">'</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span>          <span class="c1"># ValueError: key must be exactly 6 bytes</span>
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="n">SectorAuth</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="sa">b</span><span class="s1">'</span><span class="se">\xFF</span><span class="s1">'</span><span class="o">*</span><span class="mi">6</span><span class="p">,</span> <span class="n">key_type</span><span class="o">=</span><span class="s1">'C'</span><span class="p">)</span>  <span class="c1"># ValueError: key_type must be 'A' or 'B'</span>
 </span></code></pre></div>
 
 
@@ -1838,8 +1996,8 @@ common fixes.</p>
     <nav>
       
         <a href="mailto:huzaifa.farooq@aarsol.com">Huzaifa Farooq</a>, 
-        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>, 
-        <a href="mailto:huzaifa.farooq05@gmail.com">Huzaifa Farooq</a>
+        <a href="mailto:huzaifa.farooq05@gmail.com">Huzaifa Farooq</a>, 
+        <a href="mailto:69835321+sparkdrago05@users.noreply.github.com">Huzaifa Farooq</a>
     </nav>
   </span>
 

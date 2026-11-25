@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../assets/favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -585,6 +585,8 @@
       
         
       
+        
+      
     
     
     
@@ -673,6 +675,34 @@
     
   
     MIFARE Classic primer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing without hardware
   
 
     
@@ -873,6 +903,39 @@
   
     <nav class="md-nav" aria-label=" MifareReader">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.from_serial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_serial
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.simulated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;simulated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.auto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;auto
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#mifarepy.reader.MifareReader.close" class="md-nav__link">
@@ -1421,10 +1484,387 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mifarepy.protocol.NoCardError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;NoCardError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.AuthenticationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AuthenticationError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.NotAuthenticatedError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;NotAuthenticatedError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardReadError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardReadError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardWriteError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardWriteError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ValueBlockError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ValueBlockError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardTimeoutError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardTimeoutError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderProtocolError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderProtocolError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderAccessError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderAccessError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderConnectionError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderConnectionError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderNotFoundError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderNotFoundError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.error_for_nak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;error_for_nak
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mifarepy.protocol.InvalidMessage" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;InvalidMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-readers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding readers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Finding readers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;discovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" discovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery.PortInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PortInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery.find_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;find_ports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SimulatedCard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SimulatedCard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.uid_str" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;uid_str
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.set_trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_trailer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;value
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SimulatedReader
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SimulatedReader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader.place_card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;place_card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader.remove_card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;remove_card
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frame-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame tracing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frame tracing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.enable_wire_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;enable_wire_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.disable_wire_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;disable_wire_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.format_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;format_frame
       
     </span>
   </a>
@@ -2388,6 +2828,39 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.from_serial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;from_serial
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.simulated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;simulated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.reader.MifareReader.auto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;auto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mifarepy.reader.MifareReader.close" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2934,10 +3407,387 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mifarepy.protocol.NoCardError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;NoCardError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.AuthenticationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AuthenticationError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.NotAuthenticatedError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;NotAuthenticatedError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardReadError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardReadError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardWriteError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardWriteError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ValueBlockError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ValueBlockError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.CardTimeoutError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;CardTimeoutError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderProtocolError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderProtocolError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderAccessError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderAccessError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderConnectionError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderConnectionError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.ReaderNotFoundError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ReaderNotFoundError
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.protocol.error_for_nak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;error_for_nak
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mifarepy.protocol.InvalidMessage" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;InvalidMessage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finding-readers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding readers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Finding readers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-module"></code>&nbsp;discovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" discovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery.PortInfo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PortInfo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.discovery.find_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;find_ports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simulator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Simulator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SimulatedCard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SimulatedCard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.uid_str" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;uid_str
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;write
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.set_trailer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;set_trailer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedCard.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;value
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;SimulatedReader
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" SimulatedReader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader.place_card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;place_card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.simulator.SimulatedReader.remove_card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;remove_card
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frame-tracing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Frame tracing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frame tracing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.enable_wire_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;enable_wire_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.disable_wire_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;disable_wire_trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mifarepy.trace.format_frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;format_frame
       
     </span>
   </a>
@@ -3685,10 +4535,14 @@
 always matches the installed version. Everything below can be imported from
 the top-level package:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">MifareReader</span><span class="p">,</span> <span class="n">SectorAuth</span><span class="p">,</span> <span class="n">CardInfo</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">GNetPlusError</span><span class="p">,</span> <span class="n">InvalidMessage</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">QueryMessage</span><span class="p">,</span> <span class="n">ResponseMessage</span><span class="p">,</span> <span class="n">Message</span><span class="p">,</span> <span class="n">gencrc</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">MifareReader</span><span class="p">,</span> <span class="n">SectorAuth</span><span class="p">,</span> <span class="n">CardInfo</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">GNetPlusError</span><span class="p">,</span> <span class="n">AuthenticationError</span><span class="p">,</span> <span class="n">NoCardError</span><span class="p">,</span> <span class="n">InvalidMessage</span><span class="p">,</span>  <span class="c1"># and the other errors below</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">ReaderConnectionError</span><span class="p">,</span> <span class="n">ReaderNotFoundError</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">enable_wire_trace</span><span class="p">,</span> <span class="n">disable_wire_trace</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">QueryMessage</span><span class="p">,</span> <span class="n">ResponseMessage</span><span class="p">,</span> <span class="n">Message</span><span class="p">,</span> <span class="n">gencrc</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.simulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulatedCard</span><span class="p">,</span> <span class="n">SimulatedReader</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_ports</span>
 </span></code></pre></div>
 <h2 id="reader">Reader<a class="headerlink" href="#reader" title="Permanent link">&para;</a></h2>
 
@@ -3712,7 +4566,10 @@ the top-level package:</p>
         <p>Class for interfacing with the RFID card reader.</p>
 <p>Can be used as a context manager to ensure the serial port is closed:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="mifarepy.reader.MifareReader--__span-0-1"><a id="mifarepy.reader.MifareReader--__codelineno-0-1" name="mifarepy.reader.MifareReader--__codelineno-0-1" href="#mifarepy.reader.MifareReader--__codelineno-0-1"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="p">(</span><span class="s1">'/dev/ttyUSB0'</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
-</span><span id="mifarepy.reader.MifareReader--__span-0-2"><a id="mifarepy.reader.MifareReader--__codelineno-0-2" name="mifarepy.reader.MifareReader--__codelineno-0-2" href="#mifarepy.reader.MifareReader--__codelineno-0-2"></a>    <span class="n">uid</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_sn</span><span class="p">()</span>
+</span><span id="mifarepy.reader.MifareReader--__span-0-2"><a id="mifarepy.reader.MifareReader--__codelineno-0-2" name="mifarepy.reader.MifareReader--__codelineno-0-2" href="#mifarepy.reader.MifareReader--__codelineno-0-2"></a>    <span class="n">uid</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_uid</span><span class="p">()</span>
+</span><span id="mifarepy.reader.MifareReader--__span-0-3"><a id="mifarepy.reader.MifareReader--__codelineno-0-3" name="mifarepy.reader.MifareReader--__codelineno-0-3" href="#mifarepy.reader.MifareReader--__codelineno-0-3"></a>
+</span><span id="mifarepy.reader.MifareReader--__span-0-4"><a id="mifarepy.reader.MifareReader--__codelineno-0-4" name="mifarepy.reader.MifareReader--__codelineno-0-4" href="#mifarepy.reader.MifareReader--__codelineno-0-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>          <span class="c1"># find the reader automatically</span>
+</span><span id="mifarepy.reader.MifareReader--__span-0-5"><a id="mifarepy.reader.MifareReader--__codelineno-0-5" name="mifarepy.reader.MifareReader--__codelineno-0-5" href="#mifarepy.reader.MifareReader--__codelineno-0-5"></a>    <span class="n">uid</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_uid</span><span class="p">()</span>
 </span></code></pre></div>
 
         <p>Initialize the RFID reader connection.</p>
@@ -3831,11 +4688,12 @@ read-modify-write (the behaviour before 3.1).</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="RuntimeError">RuntimeError</span></code>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;ReaderConnectionError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.ReaderConnectionError&lt;/code&gt;)" href="#mifarepy.protocol.ReaderConnectionError">ReaderConnectionError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If the serial port cannot be opened.</p>
+                <p>If the serial port cannot be opened (a
+<code>RuntimeError</code> subclass whose message includes a fix hint).</p>
               </div>
             </td>
           </tr>
@@ -3862,6 +4720,313 @@ read-modify-write (the behaviour before 3.1).</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.reader.MifareReader.from_serial" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">from_serial</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#mifarepy.reader.MifareReader.from_serial" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">from_serial</span><span class="p">(</span><span class="n">serial_port</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">deviceaddr</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">value_ops</span><span class="p">:</span> <span class="n"><span title="mifarepy.reader.ValueOps">ValueOps</span></span> <span class="o">=</span> <span class="s1">'auto'</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;MifareReader&lt;/span&gt; (&lt;code&gt;mifarepy.reader.MifareReader&lt;/code&gt;)" href="#mifarepy.reader.MifareReader">MifareReader</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Use an already-open serial port (or any object with the same interface).</p>
+<p>The object needs <code>read(n)</code>, <code>write(data)</code>, a <code>timeout</code> attribute,
+and ideally <code>reset_input_buffer()</code>, <code>close()</code> and <code>is_open</code>.
+This is how <code>simulated()</code> plugs in a <code>SimulatedReader</code>.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>serial_port</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An open <code>serial.Serial</code> or compatible object.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>deviceaddr</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Device address (default: 0).</p>
+              </div>
+            </td>
+            <td>
+                  <code>0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>value_ops</code>
+            </td>
+            <td>
+                  <code><span title="mifarepy.reader.ValueOps">ValueOps</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>See the constructor.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;auto&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.reader.MifareReader.simulated" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">simulated</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#mifarepy.reader.MifareReader.simulated" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">simulated</span><span class="p">(</span><span class="n">card</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">empty</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;MifareReader&lt;/span&gt; (&lt;code&gt;mifarepy.reader.MifareReader&lt;/code&gt;)" href="#mifarepy.reader.MifareReader">MifareReader</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Create a reader connected to a <code>mifarepy.simulator.SimulatedReader</code>.</p>
+<p>No hardware is needed: use it in tests, demos and CI. The simulator
+is available as <code>reader.serial</code>, so you can place and remove cards:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="mifarepy.reader.MifareReader.simulated--__span-0-1"><a id="mifarepy.reader.MifareReader.simulated--__codelineno-0-1" name="mifarepy.reader.MifareReader.simulated--__codelineno-0-1" href="#mifarepy.reader.MifareReader.simulated--__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span>
+</span><span id="mifarepy.reader.MifareReader.simulated--__span-0-2"><a id="mifarepy.reader.MifareReader.simulated--__codelineno-0-2" name="mifarepy.reader.MifareReader.simulated--__codelineno-0-2" href="#mifarepy.reader.MifareReader.simulated--__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.simulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulatedCard</span>
+</span><span id="mifarepy.reader.MifareReader.simulated--__span-0-3"><a id="mifarepy.reader.MifareReader.simulated--__codelineno-0-3" name="mifarepy.reader.MifareReader.simulated--__codelineno-0-3" href="#mifarepy.reader.MifareReader.simulated--__codelineno-0-3"></a>
+</span><span id="mifarepy.reader.MifareReader.simulated--__span-0-4"><a id="mifarepy.reader.MifareReader.simulated--__codelineno-0-4" name="mifarepy.reader.MifareReader.simulated--__codelineno-0-4" href="#mifarepy.reader.MifareReader.simulated--__codelineno-0-4"></a><span class="n">reader</span> <span class="o">=</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">simulated</span><span class="p">()</span>            <span class="c1"># a blank 1K card is in the field</span>
+</span><span id="mifarepy.reader.MifareReader.simulated--__span-0-5"><a id="mifarepy.reader.MifareReader.simulated--__codelineno-0-5" name="mifarepy.reader.MifareReader.simulated--__codelineno-0-5" href="#mifarepy.reader.MifareReader.simulated--__codelineno-0-5"></a><span class="n">reader</span><span class="o">.</span><span class="n">serial</span><span class="o">.</span><span class="n">place_card</span><span class="p">(</span><span class="n">SimulatedCard</span><span class="p">(</span><span class="n">uid</span><span class="o">=</span><span class="s1">'0x11223344'</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="s1">'4K'</span><span class="p">))</span>
+</span></code></pre></div>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>card</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A <code>SimulatedCard</code> to put in the field. Defaults to a new blank 1K card.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>empty</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Start with no card in the field instead.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Passed to <code>from_serial()</code> (<code>deviceaddr</code>, <code>value_ops</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.reader.MifareReader.auto" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">auto</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#mifarepy.reader.MifareReader.auto" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">auto</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">probe</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">include_all</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;MifareReader&lt;/span&gt; (&lt;code&gt;mifarepy.reader.MifareReader&lt;/code&gt;)" href="#mifarepy.reader.MifareReader">MifareReader</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Find a connected reader and open it.</p>
+<p>Looks for serial ports whose USB IDs match the bridge used in PROMAG
+readers (Prolific PL2303), and, with <code>probe=True</code>, checks that each
+one answers a GNetPlus POLLING command before returning it.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="mifarepy.reader.MifareReader.auto--__span-0-1"><a id="mifarepy.reader.MifareReader.auto--__codelineno-0-1" name="mifarepy.reader.MifareReader.auto--__codelineno-0-1" href="#mifarepy.reader.MifareReader.auto--__codelineno-0-1"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="mifarepy.reader.MifareReader.auto--__span-0-2"><a id="mifarepy.reader.MifareReader.auto--__codelineno-0-2" name="mifarepy.reader.MifareReader.auto--__codelineno-0-2" href="#mifarepy.reader.MifareReader.auto--__codelineno-0-2"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">reader</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">reader</span><span class="o">.</span><span class="n">get_version</span><span class="p">())</span>
+</span></code></pre></div>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>probe</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Confirm each candidate answers before using it. Set to
+False to open the first matching port without sending anything.</p>
+              </div>
+            </td>
+            <td>
+                  <code>True</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_all</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Also try ports that don't look like a PROMAG reader,
+such as RS-232 adapters with other chips. Probing sends a few
+bytes to each port, so only use this when no other serial
+devices could be disturbed.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Passed to the constructor (<code>baudrate</code>, <code>value_ops</code>,
+<code>timeout</code>, ...).</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;ReaderNotFoundError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.ReaderNotFoundError&lt;/code&gt;)" href="#mifarepy.protocol.ReaderNotFoundError">ReaderNotFoundError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no reader was found. Its message lists the
+serial ports that were seen.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -5362,18 +6527,23 @@ inconsistent state without physically removing them.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Authenticate a sector using a key that is <strong>already loaded</strong> in the reader.</p>
-<p>Skips the SAVE_KEY step (opcode 0x2B) and jumps straight to
-AUTHENTICATE_KEY (opcode 0x2E).  This is faster when the same key
-has already been loaded by a previous <code>authenticate_sector()</code> call
-in the same session.</p>
+        <p>Authenticate a sector using the key the reader already stores for it.</p>
+<p>The reader keeps one key per sector and key type. <code>authenticate_sector()</code>
+saves the key for that sector (SAVE_KEY, opcode 0x2B); this method skips
+that step and sends AUTHENTICATE (opcode 0x23), which uses the stored
+key. It saves about 50 ms per call.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="mifarepy.reader.MifareReader.authenticate_sector_cached--__span-0-1"><a id="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-1" name="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-1" href="#mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-1"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>           <span class="c1"># stores key for sector 2, key A</span>
+</span><span id="mifarepy.reader.MifareReader.authenticate_sector_cached--__span-0-2"><a id="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-2" name="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-2" href="#mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-2"></a><span class="o">...</span>
+</span><span id="mifarepy.reader.MifareReader.authenticate_sector_cached--__span-0-3"><a id="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-3" name="mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-3" href="#mifarepy.reader.MifareReader.authenticate_sector_cached--__codelineno-0-3"></a><span class="n">reader</span><span class="o">.</span><span class="n">authenticate_sector_cached</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>         <span class="c1"># re-authenticates sector 2 later</span>
+</span></code></pre></div>
 
 
-<details class="warning" open>
-  <summary>Warning</summary>
-  <p>The reader only stores <strong>one</strong> key internally.  If any other sector
-was authenticated (or the reader was reset) since the last
-SAVE_KEY, call <code>authenticate_sector()</code> instead.</p>
+<details class="note" open>
+  <summary>Note</summary>
+  <p>The key is stored per sector. Authenticating sector 1 does not
+store a key for sector 2, so <code>authenticate_sector_cached(2)</code> uses
+whatever key was saved for sector 2 before, if any. Call
+<code>authenticate_sector()</code> once for each sector first.</p>
 </details>
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -5460,11 +6630,21 @@ SAVE_KEY, call <code>authenticate_sector()</code> instead.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;AuthenticationError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.AuthenticationError&lt;/code&gt;)" href="#mifarepy.protocol.AuthenticationError">AuthenticationError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the stored key does not match the card.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
                   <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If the reader returns NAK.</p>
+                <p>If the reader returns another NAK.</p>
               </div>
             </td>
           </tr>
@@ -7580,6 +8760,8 @@ relative and absolute numbering and tell you which blocks hold data.</p>
     </div>
 
 </div><h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
+<p>Reader NAKs raise a subclass of <code>GNetPlusError</code>; see
+<a href="../usage/#error-handling">error handling</a> for which code raises which.</p>
 
 
 <div class="doc doc-object doc-class">
@@ -7591,7 +8773,7 @@ relative and absolute numbering and tell you which blocks hold data.</p>
 
 
 <a href="#mifarepy.protocol.GNetPlusError" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GNetPlusError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GNetPlusError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
@@ -7601,6 +8783,9 @@ relative and absolute numbering and tell you which blocks hold data.</p>
 
 
         <p>Exception thrown when receiving a NAK (negative acknowledge) response.</p>
+<p>NAKs raised by <code>MifareReader</code> use the more specific subclasses below
+(<code>AuthenticationError</code>, <code>NoCardError</code>, ...), so you can catch exactly
+the failure you care about. Catching <code>GNetPlusError</code> still catches them all.</p>
 
 
 <p><span class="doc-section-title">Attributes:</span></p>
@@ -7634,6 +8819,28 @@ relative and absolute numbering and tell you which blocks hold data.</p>
               </div>
             </td>
           </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.protocol.GNetPlusError.nak_code">nak_code</span></code></td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Integer NAK code (<code>raw[0]</code>), or <code>0</code> when raw is not a single byte.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.protocol.GNetPlusError.hint">hint</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A short suggestion for fixing the problem, or <code>''</code>.</p>
+              </div>
+            </td>
+          </tr>
       </tbody>
     </table>
 
@@ -7661,6 +8868,700 @@ relative and absolute numbering and tell you which blocks hold data.</p>
 
 
   </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.NoCardError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">NoCardError</span>
+
+
+<a href="#mifarepy.protocol.NoCardError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">NoCardError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>No card answered (NAK <code>0x1F</code> no tag, or <code>0x03</code> empty).</p>
+<p>The reader also returns <code>0x1F</code> for block commands after a failed
+authentication, because the card drops back to its idle state.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.AuthenticationError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">AuthenticationError</span>
+
+
+<a href="#mifarepy.protocol.AuthenticationError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">AuthenticationError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The card rejected the key.</p>
+<p>PCR310U readers (firmware PGM0487) return NAK <code>0x09</code> for a wrong key;
+other GNetPlus readers may return <code>0x04</code>. Both raise this class.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.NotAuthenticatedError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">NotAuthenticatedError</span>
+
+
+<a href="#mifarepy.protocol.NotAuthenticatedError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">NotAuthenticatedError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>A block was accessed without authenticating its sector.</p>
+<p>PCR310U readers (firmware PGM0487) return NAK <code>0x0C</code> for reads and
+<code>0x0A</code> for writes.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.CardReadError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">CardReadError</span>
+
+
+<a href="#mifarepy.protocol.CardReadError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">CardReadError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The card refused or failed a read (NAK <code>0x12</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.CardWriteError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">CardWriteError</span>
+
+
+<a href="#mifarepy.protocol.CardWriteError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">CardWriteError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The card refused or failed a write (NAK <code>0x0F</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.ValueBlockError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ValueBlockError</span>
+
+
+<a href="#mifarepy.protocol.ValueBlockError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ValueBlockError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>A value-block operation failed (NAK <code>0x0E</code> transfer, <code>0x10</code> increment, <code>0x11</code> decrement).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.CardTimeoutError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">CardTimeoutError</span>
+
+
+<a href="#mifarepy.protocol.CardTimeoutError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">CardTimeoutError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The card did not answer in time (NAK <code>0x1C</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.ReaderProtocolError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ReaderProtocolError</span>
+
+
+<a href="#mifarepy.protocol.ReaderProtocolError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ReaderProtocolError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The reader rejected the frame or command itself (NAK <code>0x0B</code>, <code>0x27</code>, <code>0xE0</code>–<code>0xE6</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.ReaderAccessError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ReaderAccessError</span>
+
+
+<a href="#mifarepy.protocol.ReaderAccessError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ReaderAccessError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="sa">b</span><span class="s1">''</span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code></p>
+
+
+
+        <p>The reader requires a logon or host key (NAK <code>0x2D</code>, <code>0x2F</code>, <code>0x33</code>).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.ReaderConnectionError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ReaderConnectionError</span>
+
+
+<a href="#mifarepy.protocol.ReaderConnectionError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ReaderConnectionError</span><span class="p">(</span><span class="n">port</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">reason</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">hint</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">''</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="RuntimeError">RuntimeError</span></code></p>
+
+
+
+        <p>The serial port could not be opened.</p>
+<p>Subclass of <code>RuntimeError</code>, which is what earlier versions raised.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.protocol.ReaderConnectionError.port">port</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The port that failed to open.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.protocol.ReaderConnectionError.hint">hint</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A short suggestion for fixing the problem.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.protocol.ReaderNotFoundError" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ReaderNotFoundError</span>
+
+
+<a href="#mifarepy.protocol.ReaderNotFoundError" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ReaderNotFoundError</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">ports</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><span title="tuple">tuple</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n"><span title="str">str</span></span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="RuntimeError">RuntimeError</span></code></p>
+
+
+
+        <p><code>MifareReader.auto()</code> could not find a reader.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.protocol.ReaderNotFoundError.ports">ports</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The serial ports that were seen, as <code>(device, description)</code> pairs.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="mifarepy.protocol.error_for_nak" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">error_for_nak</span>
+
+
+<a href="#mifarepy.protocol.error_for_nak" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">error_for_nak</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">''</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Build the most specific <code>GNetPlusError</code> subclass for a NAK payload.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>raw</code>
+            </td>
+            <td>
+                  <code><span title="bytes">bytes</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The NAK data bytes (normally a single error code).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>context</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional text describing what was being done, e.g. <code>'sector 3, key A'</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;GNetPlusError&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.GNetPlusError&lt;/code&gt;)" href="#mifarepy.protocol.GNetPlusError">GNetPlusError</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>An exception instance (not raised).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
 
     </div>
 
@@ -7735,6 +9636,857 @@ relative and absolute numbering and tell you which blocks hold data.</p>
 
 
   </div>
+
+    </div>
+
+</div><h2 id="finding-readers">Finding readers<a class="headerlink" href="#finding-readers" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="mifarepy.discovery" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>            <span class="doc doc-object-name doc-module-name">discovery</span>
+
+
+<a href="#mifarepy.discovery" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents first">
+
+        <p>Find PROMAG / GNetPlus readers on the serial ports of this computer.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="mifarepy.discovery--__span-0-1"><a id="mifarepy.discovery--__codelineno-0-1" name="mifarepy.discovery--__codelineno-0-1" href="#mifarepy.discovery--__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_ports</span>
+</span><span id="mifarepy.discovery--__span-0-2"><a id="mifarepy.discovery--__codelineno-0-2" name="mifarepy.discovery--__codelineno-0-2" href="#mifarepy.discovery--__codelineno-0-2"></a>
+</span><span id="mifarepy.discovery--__span-0-3"><a id="mifarepy.discovery--__codelineno-0-3" name="mifarepy.discovery--__codelineno-0-3" href="#mifarepy.discovery--__codelineno-0-3"></a><span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">find_ports</span><span class="p">():</span>
+</span><span id="mifarepy.discovery--__span-0-4"><a id="mifarepy.discovery--__codelineno-0-4" name="mifarepy.discovery--__codelineno-0-4" href="#mifarepy.discovery--__codelineno-0-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">port</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="s1">'likely reader'</span> <span class="k">if</span> <span class="n">port</span><span class="o">.</span><span class="n">likely_reader</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>MifareReader.auto()</code> uses this to open the first reader it finds.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="mifarepy.discovery.PortInfo" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">PortInfo</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#mifarepy.discovery.PortInfo" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PortInfo</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">vid</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="int">int</span></span><span class="p">],</span> <span class="n">pid</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="int">int</span></span><span class="p">],</span> <span class="n">likely_reader</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>A serial port, and whether it looks like a PROMAG reader.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.discovery.PortInfo.device">device</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name to pass to <code>MifareReader</code>, e.g. <code>'/dev/ttyUSB0'</code> or <code>'COM3'</code>.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.discovery.PortInfo.description">description</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Description reported by the operating system.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.discovery.PortInfo.vid">vid</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>USB vendor ID, or None for non-USB ports.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.discovery.PortInfo.pid">pid</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>USB product ID, or None for non-USB ports.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.discovery.PortInfo.likely_reader">likely_reader</span></code></td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if the USB IDs match a known reader bridge.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.discovery.find_ports" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">find_ports</span>
+
+
+<a href="#mifarepy.discovery.find_ports" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">find_ports</span><span class="p">(</span><span class="n">include_all</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="list">list</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;PortInfo&lt;/span&gt;
+
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-dataclass&quot;&gt;&lt;code&gt;dataclass&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;mifarepy.discovery.PortInfo&lt;/code&gt;)" href="#mifarepy.discovery.PortInfo">PortInfo</a></span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>List serial ports, likely readers first.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_all</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Also return ports that don't look like a reader.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;PortInfo&lt;/span&gt;
+
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-dataclass&quot;&gt;&lt;code&gt;dataclass&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;mifarepy.discovery.PortInfo&lt;/code&gt;)" href="#mifarepy.discovery.PortInfo">PortInfo</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Ports sorted with likely readers first, then by device name.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="simulator">Simulator<a class="headerlink" href="#simulator" title="Permanent link">&para;</a></h2>
+<p>See <a href="../testing/">Testing without hardware</a> for a guide.</p>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.simulator.SimulatedCard" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SimulatedCard</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">SimulatedCard</span><span class="p">(</span><span class="n">uid</span><span class="p">:</span> <span class="n"><span title="typing.Union">Union</span></span><span class="p">[</span><span class="n"><span title="bytes">bytes</span></span><span class="p">,</span> <span class="n"><span title="str">str</span></span><span class="p">]</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">'4</span><span class="se">\xc6\x9b\xd3</span><span class="s1">'</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">'1K'</span><span class="p">,</span> <span class="n">keys</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="dict">dict</span></span><span class="p">[</span><span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n"><span title="tuple">tuple</span></span><span class="p">[</span><span class="n"><span title="bytes">bytes</span></span><span class="p">,</span> <span class="n"><span title="bytes">bytes</span></span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>Memory and state of one MIFARE Classic card.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>uid</code>
+            </td>
+            <td>
+                  <code><span title="typing.Union">Union</span>[<span title="bytes">bytes</span>, <span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>4-byte UID as bytes (card order) or a <code>'0xAABBCCDD'</code> string as
+returned by <code>MifareReader.get_uid()</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>b&#39;4\xc6\x9b\xd3&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>size</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'1K'</code> (16 sectors) or <code>'4K'</code> (40 sectors).</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;1K&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>keys</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="dict">dict</span>[<span title="int">int</span>, <span title="tuple">tuple</span>[<span title="bytes">bytes</span>, <span title="bytes">bytes</span>]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional <code>{sector: (key_a, key_b)}</code> to start with non-default keys.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.uid_str" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">uid_str</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#mifarepy.simulator.SimulatedCard.uid_str" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">uid_str</span><span class="p">:</span> <span class="n"><span title="str">str</span></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The UID formatted like <code>MifareReader.get_uid()</code>, e.g. <code>'0xD39BC634'</code>.</p>
+
+    </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.read" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">read</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard.read" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">read</span><span class="p">(</span><span class="n">sector</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="bytes">bytes</span></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the 16 bytes of relative <em>block</em> in <em>sector</em> (no authentication).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.write" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">write</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard.write" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">write</span><span class="p">(</span><span class="n">sector</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Set relative <em>block</em> in <em>sector</em> directly (no authentication).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.set_trailer" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">set_trailer</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard.set_trailer" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">set_trailer</span><span class="p">(</span><span class="n">sector</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">key_a</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="n"><span title="mifarepy.simulator.DEFAULT_KEY">DEFAULT_KEY</span></span><span class="p">,</span> <span class="n">key_b</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="n"><span title="mifarepy.simulator.DEFAULT_KEY">DEFAULT_KEY</span></span><span class="p">,</span> <span class="n">access</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span> <span class="o">=</span> <span class="n"><span title="mifarepy.simulator.TRANSPORT_ACCESS">TRANSPORT_ACCESS</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Set the keys (and optionally access bytes) of <em>sector</em>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.keys" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">keys</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard.keys" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">keys</span><span class="p">(</span><span class="n">sector</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="tuple">tuple</span></span><span class="p">[</span><span class="n"><span title="bytes">bytes</span></span><span class="p">,</span> <span class="n"><span title="bytes">bytes</span></span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return <code>(key_a, key_b)</code> of <em>sector</em>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedCard.value" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">value</span>
+
+
+<a href="#mifarepy.simulator.SimulatedCard.value" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">value</span><span class="p">(</span><span class="n">sector</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="n"><span title="int">int</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="int">int</span></span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Decode relative <em>block</em> of <em>sector</em> as a value block, or None if it isn't one.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="mifarepy.simulator.SimulatedReader" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">SimulatedReader</span>
+
+
+<a href="#mifarepy.simulator.SimulatedReader" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">SimulatedReader</span><span class="p">(</span><span class="n">card</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;SimulatedCard&lt;/span&gt; (&lt;code&gt;mifarepy.simulator.SimulatedCard&lt;/code&gt;)" href="#mifarepy.simulator.SimulatedCard">SimulatedCard</a></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s1">'SIM0001 V1.0 (mifarepy simulator)'</span><span class="p">)</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+
+
+        <p>A serial-port stand-in that answers like a GNetPlus MIFARE reader.</p>
+<p>Pass it to <code>MifareReader.from_serial()</code>, or use <code>MifareReader.simulated()</code>
+which creates one for you. Thread-safe: you can <code>place_card()</code> from another
+thread while <code>wait_for_card()</code> is waiting.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>card</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;SimulatedCard&lt;/span&gt; (&lt;code&gt;mifarepy.simulator.SimulatedCard&lt;/code&gt;)" href="#mifarepy.simulator.SimulatedCard">SimulatedCard</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Card to start with in the field, or None for an empty reader.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>version</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Version string returned by GET_VERSION.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;SIM0001 V1.0 (mifarepy simulator)&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.simulator.SimulatedReader.card">card</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The card currently in the field (None if none).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.simulator.SimulatedReader.auto_mode">auto_mode</span></code></td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Whether the reader sends card-arrival events.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="mifarepy.simulator.SimulatedReader.queries">queries</span></code></td>
+            <td>
+                  <code><span title="list">list</span>[<a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;QueryMessage&lt;/span&gt; (&lt;code&gt;mifarepy.protocol.QueryMessage&lt;/code&gt;)" href="#mifarepy.protocol.QueryMessage">QueryMessage</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Every query frame received, as <code>QueryMessage</code> objects, for assertions.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedReader.place_card" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">place_card</span>
+
+
+<a href="#mifarepy.simulator.SimulatedReader.place_card" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">place_card</span><span class="p">(</span><span class="n">card</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;code class=&quot;doc-symbol doc-symbol-heading doc-symbol-class&quot;&gt;&lt;/code&gt;            &lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;SimulatedCard&lt;/span&gt; (&lt;code&gt;mifarepy.simulator.SimulatedCard&lt;/code&gt;)" href="#mifarepy.simulator.SimulatedCard">SimulatedCard</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Put <em>card</em> in the field (replacing any other). Sends an event in auto mode.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="mifarepy.simulator.SimulatedReader.remove_card" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">remove_card</span>
+
+
+<a href="#mifarepy.simulator.SimulatedReader.remove_card" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">remove_card</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Take the card out of the field.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="frame-tracing">Frame tracing<a class="headerlink" href="#frame-tracing" title="Permanent link">&para;</a></h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="mifarepy.trace.enable_wire_trace" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">enable_wire_trace</span>
+
+
+<a href="#mifarepy.trace.enable_wire_trace" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">enable_wire_trace</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="typing.IO">IO</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_keys</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="logging.Handler">Handler</span></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Print every frame to <em>stream</em> (default: stderr).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>stream</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="typing.IO">IO</span>[<span title="str">str</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Where to write the trace.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>show_keys</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Also print key bytes instead of <code>**</code>. Only use this on
+test cards: the output then contains secrets.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="logging.Handler">Handler</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The handler that was added; pass it to <code>disable_wire_trace()</code> to stop.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="mifarepy.trace.disable_wire_trace" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">disable_wire_trace</span>
+
+
+<a href="#mifarepy.trace.disable_wire_trace" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">disable_wire_trace</span><span class="p">(</span><span class="n">handler</span><span class="p">:</span> <span class="n"><span title="typing.Optional">Optional</span></span><span class="p">[</span><span class="n"><span title="logging.Handler">Handler</span></span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Stop tracing that was started with <code>enable_wire_trace()</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="mifarepy.trace.format_frame" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <span class="doc doc-object-name doc-function-name">format_frame</span>
+
+
+<a href="#mifarepy.trace.format_frame" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">format_frame</span><span class="p">(</span><span class="n">direction</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n"><span title="bytes">bytes</span></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="str">str</span></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Return a one-line, human-readable description of a raw frame.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>direction</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'TX'</code> (host to reader) or <code>'RX'</code> (reader to host).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>frame</code>
+            </td>
+            <td>
+                  <code><span title="bytes">bytes</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The complete frame bytes, starting with SOH.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
 
     </div>
 
@@ -9355,7 +12107,7 @@ MIFARE application command table (0x20-0x3F).</p>
 
     <div class="doc doc-contents ">
 
-        <p>Convert a NAK response into a GNetPlusError with code description.</p>
+        <p>Convert a NAK response into the matching <code>GNetPlusError</code> subclass.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -9373,7 +12125,7 @@ MIFARE application command table (0x20-0x3F).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>GNetPlusError if this is a NAK response, else None.</p>
+                <p>A <code>GNetPlusError</code> (subclass) if this is a NAK response, else None.</p>
               </div>
             </td>
           </tr>
