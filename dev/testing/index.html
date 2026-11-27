@@ -591,6 +591,8 @@
       
         
       
+        
+      
     
     
     
@@ -682,6 +684,34 @@
     
   
     Command line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keys-and-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keys and access bits
   
 
     
@@ -1358,7 +1388,7 @@ thread is blocked in <code>wait_for_card()</code>:</p>
 <tbody>
 <tr>
 <td>Card presence, request / anti-collision / select, HALT, RF power</td>
-<td>Access-condition rules beyond keys</td>
+<td>The exact error codes readers return for refused commands</td>
 </tr>
 <tr>
 <td>Key A / Key B authentication, failures drop the card to idle</td>
@@ -1374,6 +1404,10 @@ thread is blocked in <code>wait_for_card()</code>:</p>
 </tr>
 <tr>
 <td>Value blocks: create, read, increment, decrement, restore, transfer</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="../keys-and-access/#in-the-simulator">Access bits</a>: each command checks the key type against the sector's access conditions</td>
 <td></td>
 </tr>
 <tr>

@@ -591,6 +591,8 @@
       
         
       
+        
+      
     
     
     
@@ -978,6 +980,34 @@
     
   
     Command line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keys-and-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keys and access bits
   
 
     
@@ -1734,8 +1764,9 @@ simulator. See <a href="../testing/">Testing without hardware</a>.</p>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a> 15      60,61,62,63        Data (0-2) + Sector Trailer (3)
 </span></code></pre></div>
 <p>The <strong>sector trailer</strong> (relative block 3) contains Key A, access bits, and Key B.<br />
-mifarepy never writes block 3 through <code>write_sector()</code> or <code>write_sector_uniform()</code>
-— you must call <code>write_block(3, ...)</code> explicitly if you need to change keys.</p>
+mifarepy never writes block 3 through <code>write_sector()</code> or <code>write_sector_uniform()</code>.
+To change keys and access bits, use <code>write_trailer()</code>: it refuses trailers that
+would lock the sector. See <a href="../keys-and-access/">Keys and access bits</a>.</p>
 <hr />
 <h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
 <h3 id="standard-save_key-authenticate">Standard (SAVE_KEY + AUTHENTICATE)<a class="headerlink" href="#standard-save_key-authenticate" title="Permanent link">&para;</a></h3>
@@ -1911,14 +1942,19 @@ on your reader (<code>reader.get_version()</code>) before relying on it.</p>
 <td><code>0x0C</code> (read), <code>0x0A</code> (write)</td>
 </tr>
 <tr>
+<td><code>AccessDeniedError</code></td>
+<td>The access bits don't let the authenticated key do this (a <code>NotAuthenticatedError</code> subclass; see <a href="../keys-and-access/#when-the-card-says-no">Keys and access bits</a>)</td>
+<td><code>0x0C</code> (read), <code>0x0A</code> (write) on PCR310U</td>
+</tr>
+<tr>
 <td><code>CardReadError</code> / <code>CardWriteError</code></td>
 <td>Read or write refused (access conditions, card moved)</td>
 <td><code>0x12</code> / <code>0x0F</code></td>
 </tr>
 <tr>
 <td><code>ValueBlockError</code></td>
-<td>Value operation failed</td>
-<td><code>0x0E</code>, <code>0x10</code>, <code>0x11</code></td>
+<td>Value operation failed or refused</td>
+<td><code>0x06</code> (PCR310U), <code>0x0E</code>, <code>0x10</code>, <code>0x11</code></td>
 </tr>
 <tr>
 <td><code>CardTimeoutError</code></td>

@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://SparkDrago05.github.io/mifarepy/dev/mifare-classic/">
       
       
-        <link rel="prev" href="../cli/">
+        <link rel="prev" href="../keys-and-access/">
       
       
         <link rel="next" href="../testing/">
@@ -591,6 +591,8 @@
       
         
       
+        
+      
     
     
     
@@ -682,6 +684,34 @@
     
   
     Command line
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keys-and-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keys and access bits
   
 
     
@@ -1670,6 +1700,8 @@ meanings defined by NXP for MIFARE Classic.</p>
 </table>
 <p>Key A is never readable. When Key B is readable (rows <code>000</code>, <code>010</code>, <code>001</code>), it
 cannot be used for authentication, and those bytes act as plain data.</p>
+<p>mifarepy names these conditions and builds, decodes and checks trailers for
+you: see <a href="../keys-and-access/">Keys and access bits</a>.</p>
 <h2 id="value-blocks">Value blocks<a class="headerlink" href="#value-blocks" title="Permanent link">&para;</a></h2>
 <p>A value block stores a <strong>signed 32-bit integer</strong> in a redundant 16-byte
 format that the card can check:</p>
@@ -1822,7 +1854,7 @@ cards or loyalty points, and treat card data as <strong>untrusted input</strong>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../cli/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Command line">
+          <a href="../keys-and-access/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Keys and access bits">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1832,7 +1864,7 @@ cards or loyalty points, and treat card data as <strong>untrusted input</strong>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Command line
+                Keys and access bits
               </div>
             </div>
           </a>

@@ -18,7 +18,7 @@
         <link rel="prev" href="../usage/">
       
       
-        <link rel="next" href="../mifare-classic/">
+        <link rel="next" href="../keys-and-access/">
       
       
         
@@ -591,6 +591,8 @@
       
         
       
+        
+      
     
     
     
@@ -839,6 +841,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -864,6 +877,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keys-and-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keys and access bits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1364,6 +1405,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#exit-codes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1461,6 +1513,10 @@ reader with a demo card in it. It's the quickest way to try the commands.</p>
 <td><a href="#restore"><code>restore</code></a></td>
 <td>Write a saved dump's data blocks to a card</td>
 </tr>
+<tr>
+<td><a href="#access"><code>access</code></a></td>
+<td>Explain who may read, write and change each block</td>
+</tr>
 </tbody>
 </table>
 <h3 id="options-for-every-command">Options for every command<a class="headerlink" href="#options-for-every-command" title="Permanent link">&para;</a></h3>
@@ -1490,7 +1546,7 @@ reader with a demo card in it. It's the quickest way to try the commands.</p>
 </tr>
 </tbody>
 </table>
-<p>Commands that open sectors (<code>read</code>, <code>write</code>, <code>dump</code>, <code>restore</code>) also take:</p>
+<p>Commands that open sectors (<code>read</code>, <code>write</code>, <code>dump</code>, <code>restore</code>, <code>access</code>) also take:</p>
 <table>
 <thead>
 <tr>
@@ -1502,6 +1558,10 @@ reader with a demo card in it. It's the quickest way to try the commands.</p>
 <tr>
 <td><code>--key HEX</code></td>
 <td>Key to try, 12 hex digits. Repeat to try several. Default <code>FFFFFFFFFFFF</code>.</td>
+</tr>
+<tr>
+<td><code>--keys FILE</code></td>
+<td>Keys from a file: one hex key per line (<code>.keys</code>, <code>.dic</code>, <code>.txt</code>), or JSON with per-sector keys (<a href="../keys-and-access/#key-sets-and-key-files">format</a>). Repeat for several files.</td>
 </tr>
 <tr>
 <td><code>--key-type A\|B</code></td>
@@ -1547,6 +1607,9 @@ which is handy to pipe into another program. <code>--count N</code> stops after 
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>$ mifarepy read 1 --block 0 --json
 </span></code></pre></div>
 <p>Key A always reads as zeros: cards never reveal it.</p>
+<p>If the access bits stop the key that opened a sector from reading a block, the
+other keys you gave are tried for that block. A block no key may read is shown
+as refused, and the exit code is 3.</p>
 <h2 id="write">write<a class="headerlink" href="#write" title="Permanent link">&para;</a></h2>
 <p>Writes 16 bytes to one data block, then reads it back to verify.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>$ mifarepy write 1 1 --text "Badge 0042"
@@ -1610,6 +1673,22 @@ copy one card's contents to another.</p>
 <p>Sector trailers and the manufacturer block are never written, so <code>restore</code>
 cannot change keys or lock a sector. The UID is not copied: it's fixed at the
 factory. Keys are tried from <code>--key</code> and from the dump itself.</p>
+<h2 id="access">access<a class="headerlink" href="#access" title="Permanent link">&para;</a></h2>
+<p>Explains the access bits of each sector in plain language: who may read,
+write, increment and decrement each block, and who may change the keys.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>$ mifarepy access 1
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Sector 1 (Key A), access bits FF078069
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>  Block 0 (000, open): read: A, write: A, increment: A, decrement: A
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  Block 1 (000, open): read: A, write: A, increment: A, decrement: A
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  Block 2 (000, open): read: A, write: A, increment: A, decrement: A
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  Trailer (001, transport): change Key A: A, read access bits: A, change access bits: A, read Key B: A, change Key B: A
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>  Key B is readable, so it is stored as data and gives no access.
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>$ mifarepy access --decode 7F078869          # no reader needed
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>$ mifarepy access --json                      # every sector, as JSON lines
+</span></code></pre></div>
+<p>To change keys and access bits, use <code>write_trailer()</code> from Python: see
+<a href="../keys-and-access/">Keys and access bits</a>.</p>
 <h2 id="exit-codes">Exit codes<a class="headerlink" href="#exit-codes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1633,7 +1712,7 @@ factory. Keys are tried from <code>--key</code> and from the dump itself.</p>
 </tr>
 <tr>
 <td>3</td>
-<td>Partly done: <code>dump</code> or <code>restore</code> could not open some sectors</td>
+<td>Partly done: <code>dump</code> or <code>restore</code> could not open some sectors, <code>read</code> could not read some blocks, or <code>access</code> could not read some trailers</td>
 </tr>
 <tr>
 <td>130</td>
@@ -1643,14 +1722,14 @@ factory. Keys are tried from <code>--key</code> and from the dump itself.</p>
 </table>
 <h2 id="from-python">From Python<a class="headerlink" href="#from-python" title="Permanent link">&para;</a></h2>
 <p><code>dump</code> and <code>restore</code> are built on <code>mifarepy.dump</code>, which you can use directly:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.dump</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardDump</span><span class="p">,</span> <span class="n">read_card</span><span class="p">,</span> <span class="n">write_card</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">dump</span> <span class="o">=</span> <span class="n">read_card</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">)])</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">dump</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'card.json'</span><span class="p">)</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">write_card</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">CardDump</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'card.json'</span><span class="p">))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MifareReader</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mifarepy.dump</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardDump</span><span class="p">,</span> <span class="n">read_card</span><span class="p">,</span> <span class="n">write_card</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">with</span> <span class="n">MifareReader</span><span class="o">.</span><span class="n">auto</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">dump</span> <span class="o">=</span> <span class="n">read_card</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">'FFFFFFFFFFFF'</span><span class="p">)])</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">dump</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">'card.json'</span><span class="p">)</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="n">write_card</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">CardDump</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'card.json'</span><span class="p">))</span>
 </span></code></pre></div>
 
 
@@ -1780,13 +1859,13 @@ factory. Keys are tried from <code>--key</code> and from the dump itself.</p>
         
         
           
-          <a href="../mifare-classic/" class="md-footer__link md-footer__link--next" aria-label="Next: MIFARE Classic primer">
+          <a href="../keys-and-access/" class="md-footer__link md-footer__link--next" aria-label="Next: Keys and access bits">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                MIFARE Classic primer
+                Keys and access bits
               </div>
             </div>
             <div class="md-footer__button md-icon">
