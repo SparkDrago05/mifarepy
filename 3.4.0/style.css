@@ -1,0 +1,116 @@
+html {
+  scroll-behavior: smooth;
+}
+
+/* Brand palette: deep indigo with a teal accent */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #3730a3;
+  --md-primary-fg-color--light: #4f46e5;
+  --md-primary-fg-color--dark: #312e81;
+  --md-accent-fg-color: #0d9488;
+  --mp-hero-from: #312e81;
+  --mp-hero-to: #0f766e;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #4f46e5;
+  --md-primary-fg-color--light: #818cf8;
+  --md-primary-fg-color--dark: #3730a3;
+  --md-accent-fg-color: #2dd4bf;
+  --md-default-bg-color: #0f1117;
+  --mp-hero-from: #1e1b4b;
+  --mp-hero-to: #134e4a;
+}
+
+/* Landing hero */
+.mp-hero {
+  margin: 0 0 2rem;
+  padding: 2.2rem 1.6rem;
+  border-radius: 0.8rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--mp-hero-from), var(--mp-hero-to));
+}
+
+.mp-hero h1 {
+  margin: 0 0 0.4rem;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.mp-hero p {
+  margin: 0.2rem 0 1.2rem;
+  font-size: 0.95rem;
+  opacity: 0.92;
+  max-width: 40rem;
+}
+
+.mp-hero .md-button {
+  margin: 0.2rem 0.4rem 0.2rem 0;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.mp-hero .md-button--primary {
+  background: #fff;
+  color: var(--mp-hero-from);
+  border-color: #fff;
+}
+
+.mp-hero .md-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.mp-hero .md-button--primary:hover {
+  background: #e0e7ff;
+  color: var(--mp-hero-from);
+}
+
+/* Card grids */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 0.6rem;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* Tables: keep wide tables scrollable on small screens */
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+.md-typeset table:not([class]) code {
+  white-space: nowrap;
+}
+
+/* Subtle status pills used in reference tables */
+.mp-yes,
+.mp-no {
+  display: inline-block;
+  padding: 0 0.45em;
+  border-radius: 1em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mp-yes {
+  background: rgba(13, 148, 136, 0.15);
+  color: #0f766e;
+}
+
+.mp-no {
+  background: rgba(100, 116, 139, 0.15);
+  color: #475569;
+}
+
+[data-md-color-scheme="slate"] .mp-yes {
+  color: #5eead4;
+}
+
+[data-md-color-scheme="slate"] .mp-no {
+  color: #cbd5e1;
+}
