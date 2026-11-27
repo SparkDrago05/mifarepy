@@ -115,8 +115,9 @@ Sector  Blocks (absolute)   Contents
 ```
 
 The **sector trailer** (relative block 3) contains Key A, access bits, and Key B.  
-mifarepy never writes block 3 through `write_sector()` or `write_sector_uniform()`
-— you must call `write_block(3, ...)` explicitly if you need to change keys.
+mifarepy never writes block 3 through `write_sector()` or `write_sector_uniform()`.
+To change keys and access bits, use `write_trailer()`: it refuses trailers that
+would lock the sector. See [Keys and access bits](keys-and-access.md).
 
 ---
 

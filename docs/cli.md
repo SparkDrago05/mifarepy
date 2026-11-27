@@ -27,6 +27,7 @@ Every command also runs with `python -m mifarepy`.
 | [`write`](#write) | Write one data block |
 | [`dump`](#dump) | Save the whole card to a file |
 | [`restore`](#restore) | Write a saved dump's data blocks to a card |
+| [`access`](#access) | Explain who may read, write and change each block |
 
 ### Options for every command
 
@@ -37,11 +38,12 @@ Every command also runs with `python -m mifarepy`.
 | `--json` | Print JSON lines instead of text, for scripts |
 | `--trace` | Print every frame sent and received, with keys hidden ([frame tracing](usage.md#frame-tracing)) |
 
-Commands that open sectors (`read`, `write`, `dump`, `restore`) also take:
+Commands that open sectors (`read`, `write`, `dump`, `restore`, `access`) also take:
 
 | Option | Meaning |
 |---|---|
 | `--key HEX` | Key to try, 12 hex digits. Repeat to try several. Default `FFFFFFFFFFFF`. |
+| `--keys FILE` | Keys from a file: one hex key per line (`.keys`, `.dic`, `.txt`), or JSON with per-sector keys ([format](keys-and-access.md#key-sets-and-key-files)). Repeat for several files. |
 | `--key-type A\|B` | Only try this key type. By default each key is tried as Key A, then Key B. |
 
 ## info
@@ -98,6 +100,10 @@ $ mifarepy read 1 --block 0 --json
 ```
 
 Key A always reads as zeros: cards never reveal it.
+
+If the access bits stop the key that opened a sector from reading a block, the
+other keys you gave are tried for that block. A block no key may read is shown
+as refused, and the exit code is 3.
 
 ## write
 
@@ -160,6 +166,27 @@ Sector trailers and the manufacturer block are never written, so `restore`
 cannot change keys or lock a sector. The UID is not copied: it's fixed at the
 factory. Keys are tried from `--key` and from the dump itself.
 
+## access
+
+Explains the access bits of each sector in plain language: who may read,
+write, increment and decrement each block, and who may change the keys.
+
+```text
+$ mifarepy access 1
+Sector 1 (Key A), access bits FF078069
+  Block 0 (000, open): read: A, write: A, increment: A, decrement: A
+  Block 1 (000, open): read: A, write: A, increment: A, decrement: A
+  Block 2 (000, open): read: A, write: A, increment: A, decrement: A
+  Trailer (001, transport): change Key A: A, read access bits: A, change access bits: A, read Key B: A, change Key B: A
+  Key B is readable, so it is stored as data and gives no access.
+
+$ mifarepy access --decode 7F078869          # no reader needed
+$ mifarepy access --json                      # every sector, as JSON lines
+```
+
+To change keys and access bits, use `write_trailer()` from Python: see
+[Keys and access bits](keys-and-access.md).
+
 ## Exit codes
 
 | Code | Meaning |
@@ -167,7 +194,7 @@ factory. Keys are tried from `--key` and from the dump itself.
 | 0 | Success |
 | 1 | Error (no reader, no card, wrong key, refused write, …). The message says why. |
 | 2 | Invalid command or options |
-| 3 | Partly done: `dump` or `restore` could not open some sectors |
+| 3 | Partly done: `dump` or `restore` could not open some sectors, `read` could not read some blocks, or `access` could not read some trailers |
 | 130 | Interrupted with ++ctrl+c++ |
 
 ## From Python

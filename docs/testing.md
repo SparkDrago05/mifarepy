@@ -113,11 +113,12 @@ uid = reader.wait_for_card(timeout=3)
 
 | Modelled | Not modelled (yet) |
 |---|---|
-| Card presence, request / anti-collision / select, HALT, RF power | Access-condition rules beyond keys |
+| Card presence, request / anti-collision / select, HALT, RF power | The exact error codes readers return for refused commands |
 | Key A / Key B authentication, failures drop the card to idle | Firmware quirks of specific reader models |
 | Block reads and writes relative to the authenticated sector; Key A reads as zeros | MIFARE Ultralight, Plus and DESFire |
 | 1K and 4K layouts, including the 16-block sectors 32–39 | Timing |
 | Value blocks: create, read, increment, decrement, restore, transfer | |
+| [Access bits](keys-and-access.md#in-the-simulator): each command checks the key type against the sector's access conditions | |
 | Auto mode with card-arrival events, polling, version, echo | |
 
 !!! warning "Always test on real hardware before shipping"

@@ -9,9 +9,12 @@ from mifarepy import (
     MifareReader, SectorAuth, CardInfo, layout,
     GNetPlusError, AuthenticationError, NoCardError, InvalidMessage,  # and the other errors below
     ReaderConnectionError, ReaderNotFoundError,
+    AccessBits, KeyRing, UnsafeTrailerError,
     enable_wire_trace, disable_wire_trace,
     QueryMessage, ResponseMessage, Message, gencrc,
 )
+from mifarepy.access import build_trailer, decode_trailer, check_trailer
+from mifarepy.keys import diversify_key
 from mifarepy.simulator import SimulatedCard, SimulatedReader
 from mifarepy.discovery import find_ports
 ```
@@ -29,6 +32,44 @@ from mifarepy.discovery import find_ports
       heading_level: 3
 
 ::: mifarepy.protocol.CardInfo
+    options:
+      heading_level: 3
+
+## Access bits
+
+See [Keys and access bits](keys-and-access.md) for a guide.
+
+::: mifarepy.access.AccessBits
+    options:
+      heading_level: 3
+
+::: mifarepy.access.build_trailer
+    options:
+      heading_level: 3
+
+::: mifarepy.access.decode_trailer
+    options:
+      heading_level: 3
+
+::: mifarepy.access.check_trailer
+    options:
+      heading_level: 3
+
+::: mifarepy.access.UnsafeTrailerError
+    options:
+      heading_level: 3
+
+## Keys
+
+::: mifarepy.keys.KeyRing
+    options:
+      heading_level: 3
+
+::: mifarepy.keys.diversify_key
+    options:
+      heading_level: 3
+
+::: mifarepy.keys.parse_key
     options:
       heading_level: 3
 

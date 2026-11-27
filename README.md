@@ -32,6 +32,7 @@ mifarepy watch                # print each card as it is tapped
 mifarepy read 1               # show sector 1
 mifarepy dump card.json       # save the whole card (.json, .bin/.mfd, .mct)
 mifarepy restore card.json    # write it back, or to another card
+mifarepy access 1             # who may read, write and change each block
 ```
 
 Add `--simulate` to try any command without a reader. See the
@@ -58,15 +59,16 @@ with MifareReader.auto() as reader:     # or MifareReader('/dev/ttyUSB0') / ('CO
 | | |
 |---|---|
 | **Card detection** | `get_uid()`, `scan_tag()`, `is_card_present()`, `wait_for_card()`, `wait_for_card_async()`, multi-card `request_all()` |
-| **Authentication** | `authenticate_sector()` with Key A or B, `authenticate_sector_cached()` |
+| **Authentication** | `authenticate_sector()` with Key A or B, `authenticate_sector_cached()`, `open_sector()` with a `KeyRing` |
+| **Keys and access bits** | `write_trailer()` changes keys and access bits with a guard against locking a sector; `AccessBits` presets, decoding in plain language; key files (MIFARE Classic Tool / Proxmark3 lists, JSON per sector); per-card `diversify_key()` |
 | **Block I/O** | `read_block()`, `write_block()`, `read_sector()`, `write_sector()` (never touches sector trailers) |
 | **Bulk I/O** | `read_blocks()` / `write_blocks()` across sectors with per-sector `SectorAuth` keys |
 | **Value blocks** | `create_value_block()`, `read_value()`, `increment_value()`, `decrement_value()`, `transfer()`, `restore()`, with native, verified transfer/restore |
 | **Card layout** | MIFARE Classic 1K and 4K, including the 16-block sectors 32–39; `mifarepy.layout` helpers for block arithmetic |
-| **Reader control** | `ping()`, `get_version()`, `set_auto_mode()`, `halt()`, `rf_power()` |
-| **Command line** | `mifarepy info / scan / watch / read / write / dump / restore`; dumps in JSON, raw `.bin`/`.mfd` and MIFARE Classic Tool `.mct` |
+| **Reader control** | `ping()`, `get_version()`, `card_type()`, `set_auto_mode()`, `halt()`, `rf_power()`, `store_keys()` |
+| **Command line** | `mifarepy info / scan / watch / read / write / dump / restore / access`, `--keys FILE`; dumps in JSON, raw `.bin`/`.mfd` and MIFARE Classic Tool `.mct` |
 | **Zero-config** | `MifareReader.auto()` finds the reader; errors name the problem and suggest a fix (`AuthenticationError`, `NoCardError`, …) |
-| **Testing without hardware** | Built-in simulated reader and cards, plus pytest fixtures (`mifare_reader`, `mifare_card`) |
+| **Testing without hardware** | Built-in simulated reader and cards that enforce access bits, plus pytest fixtures (`mifare_reader`, `mifare_card`) |
 | **Debugging** | `enable_wire_trace()` prints every GNetPlus frame, decoded, with keys hidden |
 | **Developer experience** | Context manager, full type hints (`py.typed`) |
 
@@ -86,6 +88,7 @@ port, Linux permissions and troubleshooting.
 
 - [Usage guide](https://sparkdrago05.github.io/mifarepy/usage/): every feature with examples
 - [MIFARE Classic primer](https://sparkdrago05.github.io/mifarepy/mifare-classic/): sectors, keys, access bits, value blocks
+- [Keys and access bits](https://sparkdrago05.github.io/mifarepy/keys-and-access/): change keys safely, key files, per-card keys
 - [GNetPlus protocol reference](https://sparkdrago05.github.io/mifarepy/protocol/): frame format, CRC, commands, error codes
 - [Testing without hardware](https://sparkdrago05.github.io/mifarepy/testing/): simulator and pytest fixtures
 - [API reference](https://sparkdrago05.github.io/mifarepy/api/)

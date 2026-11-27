@@ -6,7 +6,44 @@ All notable changes to mifarepy are documented here. The format follows
 
 ## [Unreleased]
 
+Safe cards: change keys and access bits without locking a sector, key files,
+per-card keys, and card-type detection.
+
+### Added
+- `mifarepy.access`: `AccessBits` builds access bits from named presets
+  (`open`, `read-only`, `write-b`, `value`, `value-decrement`, `key-b`,
+  `read-b`, `locked` for data; `transport`, `key-b`, `fixed-keys`, … for the
+  trailer), decodes them, and explains them in plain language (`describe()`,
+  `allows()`). `build_trailer()`, `decode_trailer()`, `check_trailer()`.
+- `MifareReader.write_trailer()` changes a sector's keys and access bits, then
+  re-authenticates with the new key and reads the access bits back.
+  `read_access()` decodes the authenticated sector's access bits.
+- Anti-brick guard: `write_trailer()`, `build_trailer()` and `write_block()` on
+  a trailer block refuse invalid access bits (which block a sector for good)
+  and, unless `allow_permanent=True`, access bits that can never be changed
+  again. They raise `UnsafeTrailerError` (a `ValueError`).
+- `mifarepy.keys`: `KeyRing` with per-sector keys and keys to try everywhere,
+  loaded from key lists (MIFARE Classic Tool / Proxmark3 `.keys`, `.dic`) or
+  JSON; `diversify_key()` derives per-card keys from a master secret
+  (HMAC-SHA256; a mifarepy pattern, not NXP AN10922); `parse_key()`.
+- `MifareReader.open_sector()` tries a ring's keys; `store_keys()` saves them
+  in the reader for `authenticate_sector_cached()`.
+- `MifareReader.card_type()` returns `'1K'`, `'4K'`, `'Ultralight'` or
+  `'unknown'`; `mifarepy info` shows it.
+- CLI: `mifarepy access [SECTOR ...]` explains each sector's access bits
+  (`--decode HEX` works without a reader); `--keys FILE` on every command
+  that opens sectors.
+- The simulator enforces access bits: reads, writes, value commands and
+  trailer changes are refused when the key type in use may not do them.
+- Docs page "Keys and access bits".
+
 ### Changed
+- `read_card()`, `write_card()` and `mifarepy read` / `write` try the other
+  keys for a block when the key that opened its sector may not read or write
+  it. `read_card()` / `write_card()` also accept a `KeyRing`. `mifarepy read`
+  shows a block no key may read as refused and exits with code 3.
+- `AccessBits`, `KeyRing` and `UnsafeTrailerError` are exported from the
+  package root.
 - The demo GIF in the README and on the docs home page now shows the
   command-line tool (`mifarepy watch`, then `mifarepy read`), recorded on a
   PROMAG PCR310U. `docs/assets/record.sh` records it.

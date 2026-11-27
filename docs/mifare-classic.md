@@ -158,6 +158,9 @@ meanings defined by NXP for MIFARE Classic.
 Key A is never readable. When Key B is readable (rows `000`, `010`, `001`), it
 cannot be used for authentication, and those bytes act as plain data.
 
+mifarepy names these conditions and builds, decodes and checks trailers for
+you: see [Keys and access bits](keys-and-access.md).
+
 ## Value blocks
 
 A value block stores a **signed 32-bit integer** in a redundant 16-byte
