@@ -6,7 +6,7 @@ import struct
 
 import pytest
 
-from mifarepy import CardReadError, CardWriteError, MifareReader, NotAuthenticatedError, QueryMessage, cli, layout
+from mifarepy import AccessDeniedError, CardWriteError, MifareReader, NotAuthenticatedError, QueryMessage, cli, layout
 from mifarepy.access import (
     DATA_PRESETS,
     TRAILER_PRESETS,
@@ -206,7 +206,7 @@ def test_write_trailer_change_keys_and_back():
     assert str(card.access(2)) == AccessBits.build(['write-b', 'value', 'read-only'], 'key-b').__str__()
     # Key B manages the sector now; Key A may no longer change it.
     reader.authenticate_sector(2, KEY_A)
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError):
         reader.write_trailer(DEFAULT_KEY, DEFAULT_KEY, AccessBits.build())
     reader.authenticate_sector(2, KEY_B, 'B')
     reader.write_trailer(DEFAULT_KEY, DEFAULT_KEY, AccessBits.build())   # back to a new card
@@ -306,17 +306,17 @@ def test_simulator_read_only_and_key_b_blocks():
     reader = MifareReader.simulated(card)
     reader.authenticate_sector(1, KEY_A)
     reader.read_block(0)
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError):
         reader.write_block(0, bytes(16))
     with pytest.raises(GNetPlusError):          # the card went idle after the refusal
         reader.read_block(0)
     reader.authenticate_sector(1, KEY_A)
-    with pytest.raises(CardReadError):
+    with pytest.raises(AccessDeniedError):
         reader.read_block(1)                     # Key B only
     reader.authenticate_sector(1, KEY_B, 'B')
     reader.write_block(1, b'B' * 16)
     reader.write_block(2, b'C' * 16)
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError):
         reader.write_block(0, bytes(16))
     assert card.read(1, 1) == b'B' * 16
 
@@ -339,7 +339,7 @@ def test_simulator_value_conditions():
     reader.increment_value(1, 5)
     reader.restore(1)
     assert card.value(1, 1) == 1005
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError):
         reader.create_value_block(0, 1)          # no write on a decrement-only block
     reader.authenticate_sector(1, KEY_B, 'B')
     with pytest.raises((ValueBlockError, GNetPlusError)):
@@ -359,7 +359,7 @@ def test_simulator_trailer_reads_and_writes():
     reader = MifareReader.simulated(managed)
     reader.authenticate_sector(1, KEY_A)
     assert reader.read_block(3, raw=True)[10:] == bytes(6)            # Key B hidden
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError):
         reader.write_block(3, build_trailer(DEFAULT_KEY, KEY_B, trailer='key-b'))   # Key A can't change it
     reader.authenticate_sector(1, KEY_A)
     reader.write_block(3, build_trailer(KEY_A, KEY_B, trailer='key-b'))             # unchanged: allowed
@@ -367,10 +367,10 @@ def test_simulator_trailer_reads_and_writes():
     card = SimulatedCard()
     reader = MifareReader.simulated(card)
     reader.authenticate_sector(1, DEFAULT_KEY, 'B')                    # Key B is readable: no access
-    with pytest.raises(CardReadError):
+    with pytest.raises(AccessDeniedError):
         reader.read_block(0)
     reader.authenticate_sector(1, DEFAULT_KEY, 'B')
-    with pytest.raises(CardReadError):
+    with pytest.raises(AccessDeniedError):
         reader.read_block(3)
 
 
@@ -386,7 +386,7 @@ def test_simulator_blocks_sector_with_invalid_access_bits():
             op()
     reader.authenticate_sector(1, DEFAULT_KEY)
     reader.sendmsg(QueryMessage.WRITE_BLOCK, bytes([3]) + DEFAULT_KEY + TRANSPORT_ACCESS + DEFAULT_KEY)
-    with pytest.raises(CardWriteError):
+    with pytest.raises(NotAuthenticatedError):
         reader.readmsg()
 
 
@@ -406,7 +406,7 @@ def test_dump_and_restore_use_the_key_that_may_access_each_block():
     assert target.read(1, 1) == b'only Key B reads'
 
     locked = _card_with(1, ['read-only', 'open', 'open'])
-    with pytest.raises(CardWriteError):
+    with pytest.raises(AccessDeniedError, match='may not write block 0 of sector 1'):
         write_card(MifareReader.simulated(locked), dump, keys=ring, sectors=[1])
 
 
@@ -497,3 +497,25 @@ def test_simulated_card_set_trailer_takes_access_bits():
     card.set_trailer(5, access=AccessBits.build('read-only', 'key-b'))
     assert card.access(5).data == ('010',) * 3
     assert layout.trailer_block(5) == 3
+
+
+def test_access_denied_only_when_a_sector_is_authenticated():
+    reader = MifareReader.simulated(SimulatedCard())
+    with pytest.raises(NotAuthenticatedError) as info:
+        reader.read_block(0)
+    assert not isinstance(info.value, AccessDeniedError)
+    card = _card_with(1, ['key-b', 'open', 'open'])
+    reader = MifareReader.simulated(card)
+    reader.authenticate_sector(1, KEY_A)
+    with pytest.raises(AccessDeniedError, match='may not read') as info:
+        reader.read_block(0)
+    assert info.value.nak_code == 0x0C and 'mifarepy access 1' in info.value.hint
+    assert reader._auth_sector is None                 # the card went idle
+    reader.authenticate_sector(1, KEY_A)
+    with pytest.raises(AccessDeniedError):
+        reader.read_value(0)
+    reader.authenticate_sector(1, KEY_A)
+    with pytest.raises(ValueBlockError) as info:       # native SET_VALUE refused: NAK 0x06
+        reader.sendmsg(QueryMessage.SET_VALUE, bytes([0, 0xC1, 1, 0, 0, 0]))
+        reader.readmsg()
+    assert info.value.code_description == 'Value operation refused'

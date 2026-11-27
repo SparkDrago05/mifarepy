@@ -7,7 +7,9 @@ All notable changes to mifarepy are documented here. The format follows
 ## [Unreleased]
 
 Safe cards: change keys and access bits without locking a sector, key files,
-per-card keys, and card-type detection.
+per-card keys, and card-type detection. Checked on a PROMAG PCR310U
+(firmware `PGM0487 V1.4R0`): keys and access bits changed on a spare card and
+changed back.
 
 ### Added
 - `mifarepy.access`: `AccessBits` builds access bits from named presets
@@ -33,8 +35,15 @@ per-card keys, and card-type detection.
 - CLI: `mifarepy access [SECTOR ...]` explains each sector's access bits
   (`--decode HEX` works without a reader); `--keys FILE` on every command
   that opens sectors.
+- `AccessDeniedError` (a `NotAuthenticatedError` subclass): raised when the
+  access bits refuse a read or write of an authenticated sector, with a hint
+  naming the key and block. A PCR310U reports these as NAK `0x0C` / `0x0A`,
+  the codes it also uses for "not authenticated".
+- NAK `0x06` ("Value operation refused", seen on PGM0487 firmware) raises
+  `ValueBlockError`.
 - The simulator enforces access bits: reads, writes, value commands and
-  trailer changes are refused when the key type in use may not do them.
+  trailer changes are refused when the key type in use may not do them, with
+  the same NAK codes as a PCR310U (`0x0C`, `0x0A`, `0x06`).
 - Docs page "Keys and access bits".
 
 ### Changed

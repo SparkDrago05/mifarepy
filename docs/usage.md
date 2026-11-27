@@ -312,8 +312,9 @@ whether the sector expects Key A or Key B. New cards use FFFFFFFFFFFF.
 | `NoCardError` | No card on the reader | `0x1F`, `0x03` |
 | `AuthenticationError` | Wrong key or key type | `0x09` (PCR310U), `0x04` |
 | `NotAuthenticatedError` | Block accessed before authenticating its sector | `0x0C` (read), `0x0A` (write) |
+| `AccessDeniedError` | The access bits don't let the authenticated key do this (a `NotAuthenticatedError` subclass; see [Keys and access bits](keys-and-access.md#when-the-card-says-no)) | `0x0C` (read), `0x0A` (write) on PCR310U |
 | `CardReadError` / `CardWriteError` | Read or write refused (access conditions, card moved) | `0x12` / `0x0F` |
-| `ValueBlockError` | Value operation failed | `0x0E`, `0x10`, `0x11` |
+| `ValueBlockError` | Value operation failed or refused | `0x06` (PCR310U), `0x0E`, `0x10`, `0x11` |
 | `CardTimeoutError` | Card stopped answering | `0x1C` |
 | `ReaderProtocolError` | Command or parameter not accepted by the reader | `0x0B`, `0x27`, `0xE0`–`0xE6` |
 | `ReaderAccessError` | Reader needs a logon or host key | `0x2D`, `0x2F`, `0x33` |

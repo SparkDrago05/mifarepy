@@ -101,6 +101,10 @@ Reader NAKs raise a subclass of `GNetPlusError`; see
     options:
       heading_level: 3
 
+::: mifarepy.protocol.AccessDeniedError
+    options:
+      heading_level: 3
+
 ::: mifarepy.protocol.CardReadError
     options:
       heading_level: 3

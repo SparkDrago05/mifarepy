@@ -37,11 +37,12 @@ class InvalidMessage(Exception):
 # Mapping of NAK payload bytes to human-readable descriptions, following the
 # error-code table in the GIGA-TMS MIFARE Application Programming Guide
 # (TM970014, Annex B).  0x0X-0x3X are card/MIFARE errors; 0xE0-0xE6 are
-# GNetPlus framing/protocol errors.  0x0B and 0x0C are not in that table;
-# they were observed on a PCR310U (firmware PGM0487 V1.4R0).
+# GNetPlus framing/protocol errors.  0x06, 0x0B and 0x0C are not in that
+# table; they were observed on a PCR310U (firmware PGM0487 V1.4R0).
 _NAK_CODES: dict[bytes, str] = {
     b'\x03': 'Empty',
     b'\x04': 'Authentication error',
+    b'\x06': 'Value operation refused',
     b'\x09': 'Key error',
     b'\x0A': 'Not authenticated',
     b'\x0B': 'Invalid command data',
@@ -132,6 +133,23 @@ class NotAuthenticatedError(GNetPlusError):
                     'before reading or writing it. Block numbers are relative to that sector.')
 
 
+class AccessDeniedError(NotAuthenticatedError):
+    """The sector's access bits do not let the authenticated key do this.
+
+    A PCR310U (firmware PGM0487) answers a refused read with NAK ``0x0C`` and a
+    refused write with ``0x0A``, the same codes it uses when no sector is
+    authenticated. `MifareReader` raises this subclass instead when a sector
+    was authenticated, so ``except NotAuthenticatedError`` still catches it.
+
+    The card goes idle after a refused command: authenticate again before the
+    next one.
+    """
+
+    default_hint = ("The sector's access bits don't let this key do that. Check them with "
+                    "reader.read_access().describe() or `mifarepy access SECTOR`, and use the "
+                    "other key if it is allowed. Authenticate again before the next command.")
+
+
 class CardReadError(GNetPlusError):
     """The card refused or failed a read (NAK ``0x12``)."""
 
@@ -147,7 +165,11 @@ class CardWriteError(GNetPlusError):
 
 
 class ValueBlockError(GNetPlusError):
-    """A value-block operation failed (NAK ``0x0E`` transfer, ``0x10`` increment, ``0x11`` decrement)."""
+    """A value-block operation failed (NAK ``0x0E`` transfer, ``0x10`` increment, ``0x11`` decrement).
+
+    A PCR310U (firmware PGM0487) answers SET_VALUE with ``0x06`` when the access
+    bits refuse it or the arithmetic fails.
+    """
 
     default_hint = ('The value operation failed. Check the block was created with '
                     'create_value_block() and that its access conditions allow the operation.')
@@ -177,6 +199,7 @@ NAK_ERROR_CLASSES: dict[int, type[GNetPlusError]] = {
     0x03: NoCardError,
     0x1F: NoCardError,
     0x04: AuthenticationError,
+    0x06: ValueBlockError,
     0x09: AuthenticationError,
     0x0A: NotAuthenticatedError,
     0x0C: NotAuthenticatedError,

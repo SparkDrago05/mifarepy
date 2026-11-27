@@ -39,10 +39,12 @@ from . import layout
 from .access import AccessBits, check_trailer
 from .keys import KeyRing, parse_key
 from .protocol import (
+    AccessDeniedError,
     CardInfo,
     CardWriteError,
     GNetPlusError,
     InvalidMessage,
+    NotAuthenticatedError,
     QueryMessage,
     ReaderConnectionError,
     ReaderNotFoundError,
@@ -390,14 +392,30 @@ class MifareReader:
 
         return response
 
-    def _readmsg_ctx(self, context: str) -> ResponseMessage:
-        """`readmsg()`, adding *context* (e.g. ``'sector 3, key A'``) to NAK errors."""
+    def _readmsg_ctx(self, context: str, action: Optional[str] = None) -> ResponseMessage:
+        """`readmsg()`, adding *context* (e.g. ``'sector 3, key A'``) to NAK errors.
+
+        With *action* (``'read'`` or ``'write'``), a "not authenticated" NAK
+        while a sector is authenticated becomes `AccessDeniedError`: that is
+        how PGM0487 firmware reports a command the access bits refuse.
+        """
         try:
             return self.readmsg()
         except GNetPlusError as exc:
             if not exc.raw:
                 raise
-            raise error_for_nak(exc.raw, context) from None
+            error = error_for_nak(exc.raw, context)
+            if action and isinstance(error, NotAuthenticatedError) and self._auth_sector is not None:
+                sector, kt = self._auth_sector, self._auth_key_type
+                self._auth_sector = None          # the card is idle now
+                error = AccessDeniedError(
+                    f'NAK received — access denied: Key {kt} may not {action} {context} (raw={exc.raw!r})',
+                    raw=exc.raw,
+                    hint=(f"The access bits of sector {sector} don't let Key {kt} {action} this block. "
+                          f'Check them with reader.read_access().describe() or `mifarepy access {sector}`, '
+                          'and use the other key if it is allowed. Authenticate again before the next '
+                          'command.'))
+            raise error from None
 
     def _resolve_per_sector_param(self, param, sector, default):
         """
@@ -978,7 +996,7 @@ class MifareReader:
             GNetPlusError: If the read fails.
         """
         self.sendmsg(QueryMessage.READ_BLOCK, bytes([block]))
-        response = self._readmsg_ctx(self._block_context(block))
+        response = self._readmsg_ctx(self._block_context(block), 'read')
         return response.data if raw else response.data.hex()
 
     def write_block(self, block: int, data: "Union[str, bytes]") -> str:
@@ -1007,7 +1025,7 @@ class MifareReader:
                 raise type(exc)(f'{exc} Refusing to write the trailer of sector {self._auth_sector}; '
                                 'use write_trailer() to change keys and access bits.') from None
         self.sendmsg(QueryMessage.WRITE_BLOCK, bytes([block]) + data)
-        return self._readmsg_ctx(self._block_context(block)).data.hex()
+        return self._readmsg_ctx(self._block_context(block), 'write').data.hex()
 
     # ------------------------------------------------------------------
     # Sector trailers: keys and access bits
@@ -1075,8 +1093,8 @@ class MifareReader:
             UnsafeTrailerError: If the trailer would lock the sector.
             ValueError: If no sector (or a different one) is authenticated, or
                 a key is malformed.
-            CardWriteError: If the card refuses the write (the key in use may
-                not change this trailer) or verification fails.
+            AccessDeniedError: If the key in use may not change this trailer.
+            CardWriteError: If verification fails.
             GNetPlusError: For other reader errors.
         """
         target = self._require_auth(sector)
@@ -1194,7 +1212,7 @@ class MifareReader:
             GNetPlusError: If the read fails.
         """
         self.sendmsg(QueryMessage.READ_VALUE, bytes([block]))
-        response = self.readmsg()
+        response = self._readmsg_ctx(self._block_context(block), 'read')
         return struct.unpack('<i', response.data[:4])[0]
 
     def write_value(self, block: int, value: int) -> None:
@@ -1236,7 +1254,7 @@ class MifareReader:
             raise ValueError('initial_value must be a signed 32-bit integer')
         payload = bytes([block]) + struct.pack('<i', initial_value)
         self.sendmsg(QueryMessage.CREATE_VALUE_BLOCK, payload)
-        self.readmsg()
+        self._readmsg_ctx(self._block_context(block), 'write')
 
     # ------------------------------------------------------------------
     # Value-block arithmetic: native commands with verification + fallback

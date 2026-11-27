@@ -15,6 +15,7 @@ from . import layout
 from .access import AccessBits, UnsafeTrailerError
 from .keys import KeyRing
 from .protocol import (
+    AccessDeniedError,
     AuthenticationError,
     CardInfo,
     CardReadError,
@@ -42,6 +43,7 @@ __version__ = '3.3.0'
 
 __all__ = [
     'AccessBits',
+    'AccessDeniedError',
     'AuthenticationError',
     'CardInfo',
     'CardReadError',

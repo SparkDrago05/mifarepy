@@ -128,6 +128,35 @@ build_trailer(KEY_A, KEY_B, trailer='frozen', allow_permanent=True)  # 16 bytes,
 
 The `mifarepy write` command never writes trailers.
 
+## When the card says no
+
+When the access bits refuse a command, mifarepy raises `AccessDeniedError`,
+naming the key and the block:
+
+```text
+mifarepy.AccessDeniedError: NAK received — access denied: Key A may not write block 0 of sector 1 (raw=b'\n')
+Hint: The access bits of sector 1 don't let Key A write this block. Check them with
+reader.read_access().describe() or `mifarepy access 1`, and use the other key if it
+is allowed. Authenticate again before the next command.
+```
+
+The card goes idle after a refusal, so authenticate again before the next
+command. A PCR310U (firmware PGM0487) reports a refused read as NAK `0x0C` and
+a refused write as `0x0A`, the same codes it uses when nothing is
+authenticated; `AccessDeniedError` is a subclass of `NotAuthenticatedError`, so
+existing `except NotAuthenticatedError` code still catches it. A refused
+native value command (SET_VALUE) gives `0x06`, raised as `ValueBlockError`.
+
+!!! warning "Value blocks on a PCR310U"
+    The PCR310U's own increment and decrement commands get the arithmetic
+    wrong (see the 3.1.1 changelog), so mifarepy increments and decrements by
+    reading the value and writing the new one. Writing needs the **write**
+    right. With the `value` preset only Key B may write, so on this reader
+    **Key A cannot decrement** a `value` block, even though the card allows
+    it; `transfer()` and `restore()` still work with Key A. Do top-ups and
+    spends with Key B, or use the `write-b` preset and keep the balance logic
+    in your application.
+
 ## Key sets and key files
 
 A `KeyRing` holds the keys to try: known keys for particular sectors, and a
@@ -217,7 +246,7 @@ The [simulated card](testing.md) enforces access bits the way a card does, so
 you can test these settings without a reader:
 
 ```python
-from mifarepy import MifareReader, CardWriteError
+from mifarepy import MifareReader
 from mifarepy.access import AccessBits
 from mifarepy.simulator import SimulatedCard
 
@@ -226,9 +255,8 @@ card.set_trailer(1, KEY_A, KEY_B, AccessBits.build('read-only', 'key-b'))
 reader = MifareReader.simulated(card)
 reader.authenticate_sector(1, KEY_A)
 reader.read_block(0)                 # fine
-reader.write_block(0, bytes(16))     # raises CardWriteError: the block is read-only
+reader.write_block(0, bytes(16))     # raises AccessDeniedError: the block is read-only
 ```
 
-A refused command raises `CardReadError`, `CardWriteError` or
-`ValueBlockError`, and the card drops to idle, so authenticate again before
-the next command.
+Refused commands fail the way they do on a PCR310U: see
+[When the card says no](#when-the-card-says-no).
