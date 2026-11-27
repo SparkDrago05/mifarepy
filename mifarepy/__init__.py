@@ -12,6 +12,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from . import layout
+from .access import AccessBits, UnsafeTrailerError
+from .keys import KeyRing
 from .protocol import (
     AuthenticationError,
     CardInfo,
@@ -39,6 +41,7 @@ from .trace import disable_wire_trace, enable_wire_trace
 __version__ = '3.3.0'
 
 __all__ = [
+    'AccessBits',
     'AuthenticationError',
     'CardInfo',
     'CardReadError',
@@ -46,6 +49,7 @@ __all__ = [
     'CardWriteError',
     'GNetPlusError',
     'InvalidMessage',
+    'KeyRing',
     'Message',
     'MifareReader',
     'NoCardError',
@@ -57,6 +61,7 @@ __all__ = [
     'ReaderProtocolError',
     'ResponseMessage',
     'SectorAuth',
+    'UnsafeTrailerError',
     'ValueBlockError',
     '__version__',
     'disable_wire_trace',

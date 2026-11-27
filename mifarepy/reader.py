@@ -36,8 +36,11 @@ from typing import Any, Literal, Optional, Union, overload
 import serial
 
 from . import layout
+from .access import AccessBits, check_trailer
+from .keys import KeyRing, parse_key
 from .protocol import (
     CardInfo,
+    CardWriteError,
     GNetPlusError,
     InvalidMessage,
     QueryMessage,
@@ -557,6 +560,35 @@ class MifareReader:
         self.sendmsg(QueryMessage.SELECT_CARD, uid_bytes)
         return self.readmsg().data
 
+    def card_type(self) -> Literal['1K', '4K', 'Ultralight', 'unknown']:
+        """Tell what kind of card is on the reader.
+
+        Uses the card's answer to REQUEST (ATQA) and SELECT (SAK): ATQA
+        ``44 00`` is a MIFARE Ultralight, SAK ``0x08`` a Classic 1K and SAK
+        ``0x18`` a Classic 4K. Clears the current authentication.
+
+        Returns:
+            ``'1K'``, ``'4K'``, ``'Ultralight'`` or ``'unknown'``.
+
+        Raises:
+            NoCardError: If there is no card.
+        """
+        self._auth_sector = None
+        self.sendmsg(QueryMessage.REQUEST)
+        atqa = self.readmsg(sink_events=True).data
+        if atqa[:1] == b'\x44':
+            return 'Ultralight'
+        sak = self.select_card()[:1]
+        if sak in (b'\x08', b'\x88', b'\x09'):
+            return '1K'
+        if sak in (b'\x18', b'\x98', b'\x38'):
+            return '4K'
+        if atqa[:1] == b'\x02':
+            return '4K'
+        if atqa[:1] == b'\x04' and not sak:
+            return '1K'
+        return 'unknown'
+
     def ping(self) -> bool:
         """
         Send a POLLING heartbeat to the reader and return ``True`` if it
@@ -968,8 +1000,181 @@ class MifareReader:
             data = bytes.fromhex(data)
         if len(data) != 16:
             raise ValueError('Data must be exactly 16 bytes long')
+        if self._auth_sector is not None and layout.is_trailer(self._auth_sector, block):
+            try:
+                check_trailer(data)
+            except ValueError as exc:
+                raise type(exc)(f'{exc} Refusing to write the trailer of sector {self._auth_sector}; '
+                                'use write_trailer() to change keys and access bits.') from None
         self.sendmsg(QueryMessage.WRITE_BLOCK, bytes([block]) + data)
         return self._readmsg_ctx(self._block_context(block)).data.hex()
+
+    # ------------------------------------------------------------------
+    # Sector trailers: keys and access bits
+    # ------------------------------------------------------------------
+
+    def read_access(self, sector: Optional[int] = None) -> AccessBits:
+        """Read and decode the access bits of the authenticated sector.
+
+        ```python
+        reader.authenticate_sector(1, key)
+        print(reader.read_access().describe())
+        ```
+
+        Args:
+            sector: The sector, which must be the one authenticated last
+                (default: that one).
+
+        Raises:
+            ValueError: If no sector (or a different one) is authenticated.
+            UnsafeTrailerError: If the trailer holds invalid access bits.
+            GNetPlusError: If the read fails.
+        """
+        target = self._require_auth(sector)
+        return AccessBits.from_bytes(self.read_block(layout.trailer_block(target), raw=True))
+
+    def write_trailer(
+        self,
+        key_a: Union[bytes, str],
+        key_b: Union[bytes, str],
+        access: Union[AccessBits, bytes, None] = None,
+        *,
+        sector: Optional[int] = None,
+        allow_permanent: bool = False,
+        verify: bool = True,
+    ) -> None:
+        """Change the keys and access bits of the authenticated sector.
+
+        The new trailer is checked first: invalid access bits are always
+        refused, and access bits that can never be changed again are refused
+        unless *allow_permanent* is True. With *verify*, the sector is then
+        authenticated again with the new key and the access bits are read back.
+
+        ```python
+        from mifarepy.access import AccessBits
+
+        reader.authenticate_sector(1, bytes.fromhex('FFFFFFFFFFFF'))
+        reader.write_trailer(new_a, new_b, AccessBits.build(data='write-b', trailer='key-b'))
+        ```
+
+        Note:
+            Keep the new keys somewhere safe before calling this. A sector
+            whose keys are lost cannot be opened again.
+
+        Args:
+            key_a: New Key A (6 bytes or 12 hex digits).
+            key_b: New Key B.
+            access: New access bits (`AccessBits` or 4 bytes). Default: keep
+                the current ones (read from the card).
+            sector: The sector, which must be the one authenticated last
+                (default: that one).
+            allow_permanent: Allow access bits that can never be changed.
+            verify: Re-authenticate with the new key and check the access bits.
+
+        Raises:
+            UnsafeTrailerError: If the trailer would lock the sector.
+            ValueError: If no sector (or a different one) is authenticated, or
+                a key is malformed.
+            CardWriteError: If the card refuses the write (the key in use may
+                not change this trailer) or verification fails.
+            GNetPlusError: For other reader errors.
+        """
+        target = self._require_auth(sector)
+        new_a, new_b = parse_key(key_a), parse_key(key_b)
+        used_type = self._auth_key_type
+        if access is None:
+            access = self.read_access(target)
+        bits = access if isinstance(access, AccessBits) else AccessBits.from_bytes(bytes(access))
+        trailer = new_a + bits.to_bytes() + new_b
+        check_trailer(trailer, allow_permanent=allow_permanent)
+        self.write_block(layout.trailer_block(target), trailer)
+        if not verify:
+            return
+        # After the change, use the same key type if it still gives access.
+        verify_type = 'A' if (used_type == 'B' and bits.key_b_readable) else used_type
+        self.authenticate_sector(target, new_a if verify_type == 'A' else new_b, verify_type)
+        if bits.allows('read_access', verify_type):
+            written = AccessBits.from_bytes(self.read_block(layout.trailer_block(target), raw=True))
+            if written.to_bytes()[:3] != bits.to_bytes()[:3]:
+                raise CardWriteError(f'Trailer check failed (sector {target}): access bits read back '
+                                     f'as {written}, expected {bits}', b'\x0f')
+
+    def _require_auth(self, sector: Optional[int]) -> int:
+        if self._auth_sector is None:
+            raise ValueError('authenticate a sector first')
+        if sector is not None and sector != self._auth_sector:
+            raise ValueError(f'sector {sector} is not authenticated (the last authenticated sector is '
+                             f'{self._auth_sector})')
+        return self._auth_sector
+
+    # ------------------------------------------------------------------
+    # Keys
+    # ------------------------------------------------------------------
+
+    def open_sector(
+        self,
+        sector: int,
+        keys: "Union[KeyRing, list[bytes], tuple[bytes, ...], bytes, None]" = None,
+        key_type: Optional[str] = None,
+    ) -> tuple[str, bytes]:
+        """Authenticate *sector* with the first key that works.
+
+        ```python
+        ring = KeyRing.load('keys.dic')
+        key_type, key = reader.open_sector(4, ring)
+        ```
+
+        Args:
+            sector: Sector to open.
+            keys: A `KeyRing`, a list of keys, or one key (default: ``FFFFFFFFFFFF``).
+            key_type: Only try ``'A'`` or ``'B'`` (default: Key A, then Key B).
+
+        Returns:
+            ``(key_type, key)`` that opened the sector.
+
+        Raises:
+            AuthenticationError: If no key opened it (the error of the last attempt).
+            NoCardError: If there is no card.
+        """
+        ring = _as_keyring(keys)
+        last: Optional[GNetPlusError] = None
+        for kt, key in ring.candidates(sector, key_type):
+            try:
+                self.authenticate_sector(sector, key, kt)
+                return kt, key
+            except GNetPlusError as exc:
+                if exc.nak_code in (0x03, 0x1F) and not self.is_card_present():
+                    raise
+                last = exc
+        if last is None:
+            raise ValueError('no keys to try')
+        raise last
+
+    def store_keys(self, keys: KeyRing, sectors: "Optional[Union[int, list[int]]]" = None) -> None:
+        """Save known keys in the reader, for `authenticate_sector_cached()`.
+
+        For each sector, the sector's known Key A and Key B from *keys* are
+        saved (SAVE_KEY); sectors without known keys get the ring's first
+        general key, if any.
+
+        Args:
+            keys: The keys to store.
+            sectors: Sectors to store keys for: a list, a count (16 for 1K,
+                40 for 4K), or None for 16.
+        """
+        if sectors is None:
+            sectors = 16
+        targets = list(range(sectors)) if isinstance(sectors, int) else list(sectors)
+        fallback = keys.keys[0] if keys.keys else None
+        for sector in targets:
+            for kt, code in (('A', 0x60), ('B', 0x61)):
+                key = keys.get(sector, kt) or fallback
+                if key is None:
+                    continue
+                self.sendmsg(QueryMessage.SAVE_KEY, bytes([code, sector]) + key)
+                if self.key_load_delay:
+                    time.sleep(self.key_load_delay)
+                self.readmsg()
 
     # ------------------------------------------------------------------
     # Value block operations
@@ -1490,3 +1695,13 @@ class MifareReader:
                     self.write_block(block, data)
             else:
                 self.write_sector(spec, sector=sector)
+
+
+def _as_keyring(keys: "Union[KeyRing, list[bytes], tuple[bytes, ...], bytes, None]") -> KeyRing:
+    if keys is None:
+        return KeyRing()
+    if isinstance(keys, KeyRing):
+        return keys
+    if isinstance(keys, (bytes, bytearray)):
+        return KeyRing(keys=[bytes(keys)])
+    return KeyRing(keys=list(keys))

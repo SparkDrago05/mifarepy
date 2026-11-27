@@ -47,6 +47,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Optional, Sequence, Union
 
 from . import layout
+from .keys import KeyRing
 from .protocol import GNetPlusError, QueryMessage
 
 if TYPE_CHECKING:
@@ -248,29 +249,70 @@ def detect_size(reader: MifareReader) -> str:
 ProgressCallback = Callable[[int, int, Optional[str]], None]
 
 
-def _open_sector(reader: MifareReader, sector: int, keys: Sequence[bytes]) -> Optional[tuple[str, bytes]]:
-    """Authenticate *sector* with the first key/type that works."""
+Keys = Union[Sequence[bytes], KeyRing]
+
+
+def _ring(keys: Keys) -> KeyRing:
+    if isinstance(keys, KeyRing):
+        return keys
     for key in keys:
-        for key_type in ('A', 'B'):
-            try:
-                reader.authenticate_sector(sector, key, key_type)
-                return key_type, key
-            except GNetPlusError:
-                continue
+        if len(key) != 6:
+            raise ValueError('keys must be 6 bytes each')
+    return KeyRing(keys=list(keys))
+
+
+def _open_sector(
+    reader: MifareReader, sector: int, candidates: Sequence[tuple[str, bytes]],
+) -> Optional[tuple[str, bytes]]:
+    """Authenticate *sector* with the first ``(key_type, key)`` that works."""
+    for key_type, key in candidates:
+        try:
+            reader.authenticate_sector(sector, key, key_type)
+            return key_type, key
+        except GNetPlusError:
+            continue
     return None
+
+
+def _with_fallback(reader: MifareReader, sector: int, opened: tuple[str, bytes],
+                   candidates: Sequence[tuple[str, bytes]], action: Callable[[], bytes]) -> tuple[
+                       Optional[bytes], tuple[str, bytes], Optional[GNetPlusError]]:
+    """Run *action*; if the card refuses it, re-open the sector with each other key and retry.
+
+    Returns ``(result or None, key now authenticated, first error or None)``.
+    The card goes idle after a refused command, so the sector is opened again
+    before each retry.
+    """
+    try:
+        return action(), opened, None
+    except GNetPlusError as exc:
+        first = exc
+    for cand in [c for c in candidates if c != opened]:
+        if _open_sector(reader, sector, [cand]) is None:
+            continue
+        try:
+            return action(), cand, None
+        except GNetPlusError:
+            continue
+    _open_sector(reader, sector, [opened])
+    return None, opened, first
 
 
 def read_card(
     reader: MifareReader,
-    keys: Sequence[bytes] = DEFAULT_KEYS,
+    keys: Keys = DEFAULT_KEYS,
     size: Optional[str] = None,
     progress: Optional[ProgressCallback] = None,
 ) -> CardDump:
     """Read every sector the given keys can open.
 
+    When the access bits stop the opening key from reading a block, the
+    other keys are tried for that block.
+
     Args:
         reader: An open reader with the card in its field.
-        keys: Keys to try on each sector, as Key A and then Key B.
+        keys: Keys to try on each sector, as Key A and then Key B, or a
+            `KeyRing` with known per-sector keys.
         size: ``'1K'`` or ``'4K'``; detected from the card when None.
         progress: Called as ``progress(sector, total_sectors, key_type_or_None)``.
 
@@ -278,28 +320,27 @@ def read_card(
         A `CardDump`. Sectors no key opened have None blocks; see
         `CardDump.unread_sectors()`.
     """
-    for key in keys:
-        if len(key) != 6:
-            raise ValueError('keys must be 6 bytes each')
+    ring = _ring(keys)
     size = size or detect_size(reader)
     uid = reader.get_uid()
     blocks: list[Optional[bytes]] = [None] * total_blocks(size)
     found: dict[int, tuple[Optional[bytes], Optional[bytes]]] = {}
     sectors = SIZES[size]
     for sector in range(sectors):
-        opened = _open_sector(reader, sector, keys)
+        candidates = ring.candidates(sector)
+        opened = _open_sector(reader, sector, candidates)
         if progress:
             progress(sector, sectors, opened[0] if opened else None)
         if opened is None:
             continue
-        key_type, key = opened
         for rel in range(layout.blocks_in_sector(sector)):
-            try:
-                data = reader.read_block(rel, raw=True)
-            except GNetPlusError:
-                # The card goes idle after a refused read; open the sector again.
-                _open_sector(reader, sector, [key])
+            def read(rel: int = rel) -> bytes:
+                return reader.read_block(rel, raw=True)
+            result, opened, _ = _with_fallback(reader, sector, opened, candidates, read)
+            if result is None:
                 continue
+            data = result
+            key_type, key = opened
             if rel == layout.trailer_block(sector):
                 # Key A always reads as zeros: fill in the key that opened the
                 # sector. Key B bytes are as read, unless Key B opened it.
@@ -314,7 +355,7 @@ def read_card(
 def write_card(
     reader: MifareReader,
     dump: CardDump,
-    keys: Sequence[bytes] = DEFAULT_KEYS,
+    keys: Keys = DEFAULT_KEYS,
     sectors: Optional[Sequence[int]] = None,
     progress: Optional[ProgressCallback] = None,
 ) -> list[int]:
@@ -327,8 +368,9 @@ def write_card(
     Args:
         reader: An open reader with the target card in its field.
         dump: What to write.
-        keys: Keys to try on each sector of the *target* card. The keys stored
-            in the dump are tried as well.
+        keys: Keys to try on each sector of the *target* card (a list or a
+            `KeyRing`). The keys stored in the dump are tried as well, and if
+            the opening key may not write a block, the other keys are tried.
         sectors: Only write these sectors (default: all in the dump).
         progress: Called as ``progress(sector, total_sectors, key_type_or_None)``.
 
@@ -337,7 +379,9 @@ def write_card(
 
     Raises:
         ValueError: A sector in *sectors* is not in the dump.
+        GNetPlusError: If no key may write a block of an opened sector.
     """
+    ring = _ring(keys)
     skipped = []
     targets = list(sectors) if sectors is not None else list(range(dump.sectors))
     for sector in targets:
@@ -351,7 +395,8 @@ def write_card(
                 data_blocks.append((b, d))
         if not data_blocks:
             continue
-        candidates = list(keys) + [k for k in dump.keys.get(sector, (None, None)) if k]
+        dump_a, dump_b = dump.keys.get(sector, (None, None))
+        candidates = ring.candidates(sector) + [(t, k) for t, k in (('A', dump_a), ('B', dump_b)) if k]
         opened = _open_sector(reader, sector, candidates)
         if progress:
             progress(n, len(targets), opened[0] if opened else None)
@@ -359,5 +404,10 @@ def write_card(
             skipped.append(sector)
             continue
         for rel, data in data_blocks:
-            reader.write_block(rel, data)
+            def write(rel: int = rel, data: bytes = data) -> bytes:
+                reader.write_block(rel, data)
+                return data
+            result, opened, error = _with_fallback(reader, sector, opened, candidates, write)
+            if error is not None and result is None:
+                raise error      # no key may write this block
     return skipped

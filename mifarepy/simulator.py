@@ -35,9 +35,17 @@ block reads and writes relative to the authenticated sector (Key A reads back
 as zeros), value blocks (create, read, increment, decrement, restore,
 transfer), auto mode with card-arrival events, polling, version and echo.
 
-What is not modelled yet: access-condition enforcement beyond keys, and the
-firmware quirks of specific reader models. Always check on real hardware
-before shipping.
+Access conditions are enforced: each read, write and value command checks
+the sector's access bits for the key type in use, Key A never reads back,
+Key B reads back as zeros unless the access bits allow reading it, and a
+trailer write fails if it changes a part (Key A, access bits, Key B) that the
+key in use may not change. A refused command answers with the reader's
+read / write / value error code and drops the card to idle, as a failed
+authentication does. A sector with invalid access bits refuses everything.
+
+What is not modelled: the exact error codes real readers return for refused
+commands, and the firmware quirks of specific reader models. Always check on
+real hardware before shipping.
 """
 
 from __future__ import annotations
@@ -48,6 +56,7 @@ from io import BytesIO
 from typing import Optional, Union
 
 from . import layout
+from .access import AccessBits, UnsafeTrailerError
 from .protocol import InvalidMessage, Message, QueryMessage, ResponseMessage
 
 DEFAULT_KEY = b'\xff' * 6
@@ -61,6 +70,9 @@ NAK_NOT_AUTH = 0x0A        # write without authentication
 NAK_BAD_DATA = 0x0B        # malformed AUTHENTICATE_KEY payload
 NAK_NOT_AUTH_READ = 0x0C   # read without authentication
 NAK_TRANSFER = 0x0E
+NAK_WRITE = 0x0F
+NAK_INCREMENT = 0x10
+NAK_DECREMENT = 0x11
 NAK_READ = 0x12
 NAK_NO_TAG = 0x1F
 NAK_PARAM = 0x27
@@ -123,8 +135,10 @@ class SimulatedCard:
         self.memory[layout.absolute_block(sector, block)][:] = data
 
     def set_trailer(self, sector: int, key_a: bytes = DEFAULT_KEY, key_b: bytes = DEFAULT_KEY,
-                    access: bytes = TRANSPORT_ACCESS) -> None:
-        """Set the keys (and optionally access bytes) of *sector*."""
+                    access: Union[bytes, AccessBits] = TRANSPORT_ACCESS) -> None:
+        """Set the keys (and optionally access bits: 4 bytes or `AccessBits`) of *sector*."""
+        if isinstance(access, AccessBits):
+            access = access.to_bytes()
         if len(key_a) != 6 or len(key_b) != 6 or len(access) != 4:
             raise ValueError('keys must be 6 bytes and access 4 bytes')
         self.write(sector, layout.trailer_block(sector), key_a + access + key_b)
@@ -133,6 +147,13 @@ class SimulatedCard:
         """Return ``(key_a, key_b)`` of *sector*."""
         trailer = self.read(sector, layout.trailer_block(sector))
         return trailer[:6], trailer[10:]
+
+    def access(self, sector: int) -> Optional[AccessBits]:
+        """The access bits of *sector*, or None if they are invalid (the sector is blocked)."""
+        try:
+            return AccessBits.from_bytes(self.read(sector, layout.trailer_block(sector)))
+        except UnsafeTrailerError:
+            return None
 
     def value(self, sector: int, block: int) -> Optional[int]:
         """Decode relative *block* of *sector* as a value block, or None if it isn't one."""
@@ -311,6 +332,52 @@ class SimulatedReader:
             raise _Nak(NAK_PARAM)
         return layout.absolute_block(sector, rel)
 
+    def _key_type(self) -> str:
+        assert self._auth is not None
+        return 'A' if self._auth[1] == KEY_A else 'B'
+
+    def _refuse(self, code: int) -> _Nak:
+        # The card answers NAK and drops to idle, like after a failed authentication.
+        self._deselect()
+        self._idle = True
+        return _Nak(code)
+
+    def _require(self, card: SimulatedCard, blk: int, op: str, nak: int) -> None:
+        """Raise *nak* unless the authenticated key may do *op* on data block *blk*."""
+        sector, rel = layout.sector_of(blk)
+        bits = card.access(sector)
+        if bits is None or layout.is_trailer(sector, rel):
+            raise self._refuse(nak)
+        group = rel if layout.blocks_in_sector(sector) == 4 else rel // 5
+        if not bits.allows(op, self._key_type(), group):
+            raise self._refuse(nak)
+
+    def _read_trailer(self, card: SimulatedCard, blk: int) -> bytes:
+        sector = layout.sector_of(blk)[0]
+        bits = card.access(sector)
+        if bits is None:
+            raise self._refuse(NAK_READ)
+        kt = self._key_type()
+        if kt == 'B' and bits.key_b_readable:
+            raise self._refuse(NAK_READ)
+        data = bytes(card.memory[blk])
+        access = data[6:10] if bits.allows('read_access', kt) else b'\x00' * 4
+        key_b = data[10:] if bits.allows('read_key_b', kt) else b'\x00' * 6
+        return b'\x00' * 6 + access + key_b      # Key A is never readable
+
+    def _write_trailer(self, card: SimulatedCard, blk: int, new: bytes) -> None:
+        sector = layout.sector_of(blk)[0]
+        bits = card.access(sector)
+        if bits is None:
+            raise self._refuse(NAK_WRITE)
+        kt = self._key_type()
+        old = bytes(card.memory[blk])
+        for part, rights in ((slice(0, 6), 'write_key_a'), (slice(6, 10), 'write_access'),
+                             (slice(10, 16), 'write_key_b')):
+            if old[part] != new[part] and not bits.allows(rights, kt):
+                raise self._refuse(NAK_WRITE)
+        card.memory[blk][:] = new
+
     def _dispatch(self, f: int, d: bytes) -> tuple[bytes, list[bytes]]:
         Q = QueryMessage
         if f == Q.POLLING:
@@ -362,31 +429,41 @@ class SimulatedReader:
 
         if f == Q.READ_BLOCK:
             blk = self._block(d[0], read=True)
-            data = bytes(card.memory[blk])
-            if layout.sector_of(blk)[1] == layout.trailer_block(layout.sector_of(blk)[0]):
-                data = b'\x00' * 6 + data[6:]   # Key A is never readable
-            return data, []
+            if layout.is_trailer(*layout.sector_of(blk)):
+                return self._read_trailer(card, blk), []
+            self._require(card, blk, 'read', NAK_READ)
+            return bytes(card.memory[blk]), []
         if f == Q.WRITE_BLOCK:
             if len(d) != 17:
                 raise _Nak(NAK_PARAM)
             blk = self._block(d[0])
             if blk == 0:
-                raise _Nak(0x0F)  # manufacturer block is read-only
+                raise _Nak(NAK_WRITE)  # manufacturer block is read-only
+            if layout.is_trailer(*layout.sector_of(blk)):
+                self._write_trailer(card, blk, d[1:])
+                return OK, []
+            self._require(card, blk, 'write', NAK_WRITE)
             card.memory[blk][:] = d[1:]
             return OK, []
         if f == Q.READ_VALUE:
             blk = self._block(d[0], read=True)
+            self._require(card, blk, 'read', NAK_READ)
             value = _decode_value(bytes(card.memory[blk]))
             if value is None:
                 raise _Nak(NAK_READ)
             return struct.pack('<i', value), []
         if f == Q.CREATE_VALUE_BLOCK:
             blk = self._block(d[0])
+            self._require(card, blk, 'write', NAK_WRITE)
             value = struct.unpack('<i', d[1:5])[0] if len(d) >= 5 else 0
             card.memory[blk][:] = _encode_value(value, blk)
             return OK, []
         if f in (Q.SET_VALUE, Q.SET_VALUEEX):
             blk = self._block(d[0])
+            if len(d) == 6 and d[1] == 0xC1:
+                self._require(card, blk, 'increment', NAK_INCREMENT)
+            else:
+                self._require(card, blk, 'decrement', NAK_DECREMENT)
             current = _decode_value(bytes(card.memory[blk]))
             if current is None or len(d) != 6 or d[1] not in (0xC0, 0xC1):
                 raise _Nak(NAK_TRANSFER)
@@ -399,6 +476,7 @@ class SimulatedReader:
             return OK, []
         if f == Q.RESTORE:
             blk = self._block(d[0])
+            self._require(card, blk, 'decrement', NAK_TRANSFER)
             value = _decode_value(bytes(card.memory[blk]))
             if value is None:
                 raise _Nak(NAK_TRANSFER)
@@ -406,6 +484,7 @@ class SimulatedReader:
             return OK, []
         if f == Q.TRANSFER:
             blk = self._block(d[0])
+            self._require(card, blk, 'decrement', NAK_TRANSFER)
             if self._transfer_buffer is None:
                 raise _Nak(NAK_TRANSFER)
             card.memory[blk][:] = _encode_value(self._transfer_buffer, blk)
