@@ -4,7 +4,7 @@ All notable changes to mifarepy are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [3.4.0] - 2026-11-27
 
 Safe cards: change keys and access bits without locking a sector, key files,
 per-card keys, and card-type detection. Checked on a PROMAG PCR310U
@@ -266,7 +266,7 @@ First stable release on PyPI, renamed from `pymifare` to `mifarepy`.
 - Python 3 port of gnetplus: GNetPlus protocol framing and CRC, reading card
   serial numbers over USB or RS-232 serial.
 
-[Unreleased]: https://github.com/SparkDrago05/mifarepy/compare/v3.3.0...HEAD
+[3.4.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/SparkDrago05/mifarepy/compare/v3.1.0...v3.1.1
